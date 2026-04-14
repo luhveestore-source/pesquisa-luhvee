@@ -46,22 +46,22 @@ LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 SENHA_ADMIN = "luhvee2026"
 
 produtos = {
-    "Perfumes e Bodysplash (Fem/Masc)": "Fragrâncias irresistíveis! ✨",
-    "Scarpins e Saltos": "Elegância em cada passo! 👠",
-    "Moda Adulto e Infantil": "Estilo para toda a família! 👗",
-    "Mamãe e Bebê": "Cuidado para os pequenos! 👶",
-    "Pets": "Mimos para seu pet! 🐾",
-    "Eletrodomésticos": "Tecnologia para o seu lar! 🏠",
-    "Cama, Mesa e Banho": "Conforto e elegância! 🛏️",
-    "Ferramentas": "Qualidade para seus projetos! 🛠️",
-    "Jardinagem": "Beleza para o seu jardim! 🌻",
-    "Tênis Adulto e Infantil": "Conforto para o dia a dia! 👟",
-    "Informática": "Performance ao seu alcance! 💻",
-    "Móveis": "Design para o seu lar! 🛋️",
-    "Lingerie": "Autoestima em cada detalhe! 👙",
-    "Sexshop": "Momentos especiais com sigilo! 🔥",
-    "Brinquedos": "Diversão garantida! 🧸",
-    "Outros": "Diga-nos o que deseja! ✨"
+    "Perfumes e Bodysplash (Fem/Masc)": "Fragrâncias irresistíveis!",
+    "Scarpins e Saltos": "Elegância em cada passo!",
+    "Moda Adulto e Infantil": "Estilo para toda a família!",
+    "Mamãe e Bebê": "Cuidado para os pequenos!",
+    "Pets": "Mimos para seu pet!",
+    "Eletrodomésticos": "Tecnologia para o seu lar!",
+    "Cama, Mesa e Banho": "Conforto e elegância!",
+    "Ferramentas": "Qualidade para seus projetos!",
+    "Jardinagem": "Beleza para o seu jardim!",
+    "Tênis Adulto e Infantil": "Conforto para o dia a dia!",
+    "Informática": "Performance ao seu alcance!",
+    "Móveis": "Design para o seu lar!",
+    "Lingerie": "Autoestima em cada detalhe!",
+    "Sexshop": "Momentos especiais com sigilo!",
+    "Brinquedos": "Diversão garantida!",
+    "Outros": "Diga-nos o que deseja!"
 }
 
 # --- LOGO ---
@@ -82,7 +82,7 @@ if menu == "Fazer Pesquisa":
         nome = st.text_input("Nome Completo")
         whatsapp = st.text_input("WhatsApp (com DDD)")
         escolha = st.selectbox("Qual categoria você quer ver?", list(produtos.keys()))
-        plataforma = st.radio("Onde prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
+        plataforma = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
         
         st.write("---")
         st.write("📢 *CLIQUE ABAIXO PARA FINALIZAR:*")
@@ -99,12 +99,12 @@ if menu == "Fazer Pesquisa":
                 "Loja": plataforma
             })
             
-            st.balloons() # Fogos/Balões de comemoração
-            st.markdown(f"<h1 style='text-align: center; color: #ff69b4;'>OBRIGADA, {nome.upper()}! 🥰</h1>", unsafe_allow_html=True)
+            # Removidos balões e neve para um visual focado
+            st.markdown(f"<h1 style='text-align: center; color: #ff69b4;'>OBRIGADA, {nome.upper()}! ❤️</h1>", unsafe_allow_html=True)
             
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             
-            # --- MENSAGEM DO WHATSAPP ATUALIZADA ---
+            # --- MENSAGEM DO WHATSAPP COM EMOJIS SEGUROS ---
             texto_zap = (
                 f"Olá {nome.upper()}! ❤️\n\n"
                 f"Ficamos muito felizes com sua participação! 🥰\n\n"
