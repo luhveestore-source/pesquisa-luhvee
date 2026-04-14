@@ -22,6 +22,7 @@ st.markdown("""
         font-size: 22px !important;
         font-weight: bold !important;
         height: 65px !important;
+        text-transform: uppercase;
     }
     .stButton>button:hover {
         background-color: #ff69b4 !important;
@@ -61,7 +62,7 @@ produtos = {
     "Lingerie": "Autoestima em cada detalhe!",
     "Sexshop": "Momentos especiais com sigilo!",
     "Brinquedos": "Diversão garantida!",
-    "Outros": "Diga-nos o que deseja!"
+    "Outros / Encomenda Especial ✨": "Eu busco o produto dos seus sonhos!"
 }
 
 # --- LOGO ---
@@ -81,16 +82,17 @@ if menu == "Fazer Pesquisa":
     with st.form("form_vendas"):
         nome = st.text_input("Nome Completo")
         whatsapp = st.text_input("WhatsApp (com DDD)")
-        escolha = st.selectbox("Qual categoria você quer ver?", list(produtos.keys()))
+        escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
         plataforma = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
+        
+        st.info("💡 Dica: Se não encontrar o que precisa, escolha 'Outros' e me chame no Zap!")
         
         st.write("---")
         st.write("📢 *CLIQUE ABAIXO PARA FINALIZAR:*")
-        submit = st.form_submit_button("FINALIZAR PESQUISA 💖")
+        submit = st.form_submit_button("CONCLUIR PESQUISA 💖")
 
     if submit:
         if nome and whatsapp:
-            # Salvar no Dashboard
             st.session_state['historico_vendas'].append({
                 "Data": datetime.now().strftime("%d/%m %H:%M"),
                 "Cliente": nome.upper(),
@@ -103,13 +105,16 @@ if menu == "Fazer Pesquisa":
             
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             
-            # --- MENSAGEM DO WHATSAPP (FORMATO REFORÇADO) ---
-            # Usei códigos universais para garantir que os emojis apareçam
+            # --- MENSAGEM DO WHATSAPP (COM TEXTO DE ENCOMENDA) ---
+            msg_encomenda = ""
+            if "Outros" in escolha:
+                msg_encomenda = "\n\n📢 AVISO: Vi que você não encontrou exatamente o que queria. Me conte aqui o que você busca que eu encontro para você e coloco na vitrine agora! ✨"
+
             texto_zap = (
                 f"Olá {nome.upper()}! ❤️\n\n"
                 f"Ficamos muito felizes com sua participação! 🥰\n\n"
                 f"Aqui está nossa vitrine atualizada de {escolha} na plataforma {plataforma}:\n"
-                f"👉 {link_final}\n\n"
+                f"👉 {link_final}{msg_encomenda}\n\n"
                 f"Caso queira conferir produtos em outras plataformas, segue nossa central de links:\n"
                 f"🔗 {CENTRALIZADOR}\n\n"
                 f"Siga-nos também:\n"
@@ -118,9 +123,8 @@ if menu == "Fazer Pesquisa":
                 f"LuhVee Stores agradece seu carinho! ❤️🌸"
             )
             
-            # Nova forma de codificar para evitar as interrogações
+            # Codificação segura para emojis
             msg_encoded = urllib.parse.quote(texto_zap, safe='')
-            
             num_limpo = "".join(filter(str.isdigit, whatsapp))
             if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
             
@@ -131,11 +135,9 @@ if menu == "Fazer Pesquisa":
 else:
     st.title("📊 DASHBOARD DE VENDAS")
     senha = st.text_input("Senha de Acesso", type="password")
-    
     if senha == SENHA_ADMIN:
         if st.session_state['historico_vendas']:
-            df = pd.DataFrame(st.session_state['historico_vendas'])
-            st.table(df)
+            st.table(pd.DataFrame(st.session_state['historico_vendas']))
         else:
             st.warning("Ainda não há pesquisas registradas.")
     elif senha != "":
