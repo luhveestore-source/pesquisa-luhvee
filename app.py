@@ -6,19 +6,41 @@ from datetime import datetime
 # --- CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="LuhVee Stores", page_icon="🛍️", layout="centered")
 
-# CSS para Visual Premium Black & Pink
+# CSS para Visual Premium - Botões com alto contraste
 st.markdown("""
     <style>
     .stApp { background-color: #000000; }
+    
+    /* Campos de entrada */
     .stTextInput>div>div>input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea {
         background-color: #1a1a1a; color: white; border: 1px solid #ff69b4;
     }
+    
     label { color: white !important; font-weight: bold; }
+
+    /* BOTÃO DE CONCLUIR (Rosa com letra Preta para leitura perfeita) */
     .stButton>button {
-        background-color: #ff69b4; color: white; border-radius: 20px;
-        border: 1px solid #ffd700; width: 100%; font-size: 18px; font-weight: bold;
+        background-color: #ff69b4 !important; 
+        color: #000000 !important; 
+        border-radius: 25px;
+        border: 2px solid #ffd700; 
+        width: 100%; 
+        font-size: 20px !important; 
+        font-weight: 900 !important;
+        height: 3.5em;
+        margin-top: 20px;
     }
+    
+    .stButton>button:hover {
+        background-color: #ff1493 !important;
+        color: #ffffff !important;
+        border: 2px solid #ffffff;
+    }
+
     h1, h2, h3, p, span { color: #ffffff !important; text-align: center; }
+    
+    /* Estilo para as opções de rádio */
+    div[data-baseweb="radio"] > div { color: white !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -31,7 +53,6 @@ LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
 LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 SENHA_ADMIN = "luhvee2026"
 
-# Lista de Produtos Completa
 produtos = {
     "Perfumes e Bodysplash (Fem/Masc)": "Fragrâncias irresistíveis! ✨",
     "Scarpins e Saltos": "Elegância em cada passo! 👠",
@@ -62,17 +83,19 @@ with col2:
     except:
         st.write("✨ LUHVEE STORES")
 
-# --- INTERFACE ---
+# --- NAVEGAÇÃO ---
 menu = st.sidebar.radio("Navegação", ["Fazer Pesquisa", "Painel Administrativo"])
 
 if menu == "Fazer Pesquisa":
     st.markdown("### Encontre o seu produto favorito! ❤️")
     
     with st.form("form_luhvee"):
-        nome = st.text_input("Seu Nome")
-        whatsapp = st.text_input("WhatsApp (com DDD)")
-        categoria = st.selectbox("O que você procura hoje?", list(produtos.keys()))
-        plataforma = st.radio("Sua plataforma favorita:", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
+        nome = st.text_input("Seu Nome Completo")
+        whatsapp = st.text_input("Seu WhatsApp (com DDD)")
+        categoria = st.selectbox("Qual categoria você quer ver?", list(produtos.keys()))
+        plataforma = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
+        
+        st.markdown("<p style='color: #ff69b4 !important; font-weight: bold;'>👇 Clique no botão abaixo para finalizar:</p>", unsafe_allow_html=True)
         submit = st.form_submit_button("CONCLUIR E RECEBER LISTA 💖")
 
     if submit:
@@ -85,7 +108,7 @@ if menu == "Fazer Pesquisa":
             
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             
-            # --- MENSAGEM BONITINHA (COM EMOJIS CORRIGIDOS) ---
+            # --- MENSAGEM BONITINHA CORRIGIDA ---
             texto_formatado = (
                 f"Olá {nome}! ❤️\n\n"
                 f"Ficamos muito felizes com a sua participação na nossa pesquisa! 🥰\n\n"
@@ -100,15 +123,17 @@ if menu == "Fazer Pesquisa":
                 f"LuhVee Stores agradece seu carinho! ❤️🌸"
             )
             
-            # Ajuste para garantir que emojis funcionem no link
             msg_encoded = urllib.parse.quote(texto_formatado)
             num_limpo = "".join(filter(str.isdigit, whatsapp))
             if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
             
-            st.success(f"Tudo pronto, {nome}! Toque no botão abaixo para receber sua mensagem carinhosa.")
-            st.link_button("📲 RECEBER MINHA VITRINE NO WHATSAPP", f"https://wa.me/{num_limpo}?text={msg_encoded}")
+            st.success(f"Parabéns {nome}! Pesquisa concluída.")
+            st.markdown(f"### [🛒 ACESSAR VITRINE DA {plataforma.upper()}]({link_final})")
+            
+            # Botão de WhatsApp após o formulário
+            st.link_button("📲 RECEBER NO WHATSAPP COM CARINHO", f"https://wa.me/{num_limpo}?text={msg_encoded}")
         else:
-            st.error("Por favor, preencha Nome e WhatsApp.")
+            st.error("Por favor, preencha o Nome e o WhatsApp.")
 
 else:
     st.markdown("### 🔐 Painel Administrativo")
@@ -117,6 +142,6 @@ else:
         if st.session_state['historico']:
             st.dataframe(pd.DataFrame(st.session_state['historico']), use_container_width=True)
         else:
-            st.info("Nenhuma pesquisa ainda.")
+            st.info("Nenhuma pesquisa registrada.")
     elif acesso != "":
         st.error("Senha incorreta!")
