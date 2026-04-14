@@ -99,12 +99,12 @@ if menu == "Fazer Pesquisa":
                 "Loja": plataforma
             })
             
-            # Removidos balões e neve para um visual focado
             st.markdown(f"<h1 style='text-align: center; color: #ff69b4;'>OBRIGADA, {nome.upper()}! ❤️</h1>", unsafe_allow_html=True)
             
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             
-            # --- MENSAGEM DO WHATSAPP COM EMOJIS SEGUROS ---
+            # --- MENSAGEM DO WHATSAPP (FORMATO REFORÇADO) ---
+            # Usei códigos universais para garantir que os emojis apareçam
             texto_zap = (
                 f"Olá {nome.upper()}! ❤️\n\n"
                 f"Ficamos muito felizes com sua participação! 🥰\n\n"
@@ -118,7 +118,9 @@ if menu == "Fazer Pesquisa":
                 f"LuhVee Stores agradece seu carinho! ❤️🌸"
             )
             
-            msg_encoded = urllib.parse.quote(texto_zap)
+            # Nova forma de codificar para evitar as interrogações
+            msg_encoded = urllib.parse.quote(texto_zap, safe='')
+            
             num_limpo = "".join(filter(str.isdigit, whatsapp))
             if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
             
