@@ -6,45 +6,47 @@ from datetime import datetime
 # --- CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="LuhVee Stores", page_icon="🛍️", layout="centered")
 
-# CSS para Visual Premium - Botões com alto contraste
+# CSS para Corrigir o Botão e o Visual do Dashboard
 st.markdown("""
     <style>
     .stApp { background-color: #000000; }
     
-    /* Campos de entrada */
-    .stTextInput>div>div>input, .stSelectbox>div>div>div, .stTextArea>div>div>textarea {
-        background-color: #1a1a1a; color: white; border: 1px solid #ff69b4;
+    /* Campos de texto brancos para contraste no fundo preto */
+    input, textarea, [data-baseweb="select"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
-    
-    label { color: white !important; font-weight: bold; }
 
-    /* BOTÃO DE CONCLUIR (Rosa com letra Preta para leitura perfeita) */
+    /* BOTÃO DE CONCLUIR - AGORA VISÍVEL E BONITO */
     .stButton>button {
-        background-color: #ff69b4 !important; 
-        color: #000000 !important; 
-        border-radius: 25px;
-        border: 2px solid #ffd700; 
-        width: 100%; 
-        font-size: 20px !important; 
-        font-weight: 900 !important;
-        height: 3.5em;
-        margin-top: 20px;
+        background-color: #000000 !important; 
+        color: #ff69b4 !important; 
+        border: 3px solid #ffd700 !important;
+        border-radius: 15px !important;
+        width: 100% !important;
+        font-size: 24px !important;
+        font-weight: bold !important;
+        height: 70px !important;
+        text-transform: uppercase;
     }
     
     .stButton>button:hover {
-        background-color: #ff1493 !important;
-        color: #ffffff !important;
-        border: 2px solid #ffffff;
+        background-color: #ff69b4 !important;
+        color: #000000 !important;
     }
 
-    h1, h2, h3, p, span { color: #ffffff !important; text-align: center; }
+    label, p, h1, h2, h3 { color: #ffffff !important; font-weight: bold; }
     
-    /* Estilo para as opções de rádio */
-    div[data-baseweb="radio"] > div { color: white !important; }
+    /* Estilo para a tabela do Dashboard */
+    [data-testid="stTable"] { background-color: #ffffff; border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- CONFIGURAÇÕES DO NEGÓCIO ---
+# --- SISTEMA DE MEMÓRIA (DASHBOARD) ---
+if 'banco_dados' not in st.session_state:
+    st.session_state['banco_dados'] = []
+
+# --- CONFIGURAÇÕES ---
 SEU_WHATSAPP = "5511948021428"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
@@ -56,92 +58,83 @@ SENHA_ADMIN = "luhvee2026"
 produtos = {
     "Perfumes e Bodysplash (Fem/Masc)": "Fragrâncias irresistíveis! ✨",
     "Scarpins e Saltos": "Elegância em cada passo! 👠",
-    "Moda Adulto e Infantil": "Estilo para toda a família! 👗👕",
-    "Mamãe e Bebê": "Cuidado para os pequenos! 👶🍼",
-    "Pets": "Mimos para o seu melhor amigo! 🐾",
-    "Eletrodomésticos": "Praticidade para o seu lar! 🏠🔌",
-    "Cama, Mesa e Banho": "Sua casa mais aconchegante! 🛏️🚿",
-    "Ferramentas": "Qualidade para seus projetos! 🛠️🔩",
-    "Jardinagem": "Beleza para o seu jardim! 🌻🌿",
-    "Tênis Adulto e Infantil": "Conforto para o dia a dia! 👟✨",
-    "Informática": "Performance ao seu alcance! 💻🖱️",
-    "Móveis": "Design para o seu lar! 🛋️🏠",
-    "Lingerie": "Autoestima e delicadeza! 👙💖",
-    "Sexshop": "Momentos especiais com sigilo! 🔥🤫",
-    "Brinquedos": "Diversão garantida! 🧸🪁",
-    "Outros": "Diga-nos o que você deseja! ✨"
+    "Moda Adulto e Infantil": "Estilo para toda a família! 👗",
+    "Mamãe e Bebê": "Cuidado para os pequenos! 👶",
+    "Pets": "Mimos para seu pet! 🐾",
+    "Outros": "Diga-nos o que deseja! ✨"
 }
 
-if 'historico' not in st.session_state:
-    st.session_state['historico'] = []
-
 # --- LOGO ---
-col1, col2, col3 = st.columns([1, 3, 1])
+col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     try:
-        st.image("1000396187.jpeg", use_container_width=True)
+        st.image("1000396187.jpeg")
     except:
-        st.write("✨ LUHVEE STORES")
+        st.header("✨ LUHVEE STORES")
 
-# --- NAVEGAÇÃO ---
-menu = st.sidebar.radio("Navegação", ["Fazer Pesquisa", "Painel Administrativo"])
+# --- MENU ---
+menu = st.sidebar.radio("Ir para:", ["Fazer Pesquisa", "Ver Dashboard (ADM)"])
 
 if menu == "Fazer Pesquisa":
-    st.markdown("### Encontre o seu produto favorito! ❤️")
+    st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
     
-    with st.form("form_luhvee"):
-        nome = st.text_input("Seu Nome Completo")
-        whatsapp = st.text_input("Seu WhatsApp (com DDD)")
-        categoria = st.selectbox("Qual categoria você quer ver?", list(produtos.keys()))
+    with st.form("main_form"):
+        nome = st.text_input("Nome Completo")
+        whatsapp = st.text_input("WhatsApp (com DDD)")
+        escolha = st.selectbox("Qual categoria você quer ver?", list(produtos.keys()))
         plataforma = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
         
-        st.markdown("<p style='color: #ff69b4 !important; font-weight: bold;'>👇 Clique no botão abaixo para finalizar:</p>", unsafe_allow_html=True)
-        submit = st.form_submit_button("CONCLUIR E RECEBER LISTA 💖")
+        st.write("---")
+        st.write("📢 *QUASE LÁ! CLIQUE ABAIXO PARA FINALIZAR:*")
+        submit = st.form_submit_button("FINALIZAR PESQUISA 💖")
 
     if submit:
         if nome and whatsapp:
-            st.session_state['historico'].append({
-                "Data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                "Nome": nome, "WhatsApp": whatsapp, "Produto": categoria, "Plataforma": plataforma
-            })
-            st.balloons()
+            # SALVAR NO DASHBOARD
+            novo_lead = {
+                "Data": datetime.now().strftime("%d/%m %H:%M"),
+                "Cliente": nome,
+                "Whats": whatsapp,
+                "Interesse": escolha,
+                "Loja": plataforma
+            }
+            st.session_state['banco_dados'].append(novo_lead)
+            
+            # EFEITO ESPECIAL (Chuva de Neve/Brilho)
+            st.snow() 
+            
+            st.markdown(f"<h1 style='color: #ff69b4;'>OBRIGADA, {nome.upper()}! 🥰</h1>", unsafe_allow_html=True)
             
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             
-            # --- MENSAGEM BONITINHA CORRIGIDA ---
-            texto_formatado = (
+            # MENSAGEM DO WHATSAPP
+            texto = (
                 f"Olá {nome}! ❤️\n\n"
-                f"Ficamos muito felizes com a sua participação na nossa pesquisa! 🥰\n\n"
-                f"Aqui está a nossa vitrine de produtos atualizada na plataforma que você escolheu ({plataforma}):\n"
+                f"Ficamos felizes com sua participação! 🥰\n\n"
+                f"Aqui está sua vitrine ({plataforma}):\n"
                 f"👉 {link_final}\n\n"
-                f"Confira também nossa central de links:\n"
-                f"🔗 {CENTRALIZADOR}\n\n"
-                f"Não esqueça de nos seguir:\n"
-                f"📸 Instagram: {INSTAGRAM}\n"
-                f"🎥 TikTok: {TIKTOK}\n\n"
-                f"Qualquer dúvida, é só nos chamar! ✨\n"
-                f"LuhVee Stores agradece seu carinho! ❤️🌸"
+                f"Central de Links:\n🔗 {CENTRALIZADOR}\n\n"
+                f"Siga-nos:\n📸 Instagram: {INSTAGRAM}\n🎥 TikTok: {TIKTOK}\n\n"
+                f"LuhVee Stores agradece! ❤️🌸"
             )
             
-            msg_encoded = urllib.parse.quote(texto_formatado)
-            num_limpo = "".join(filter(str.isdigit, whatsapp))
-            if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
+            msg_link = urllib.parse.quote(texto)
+            num = "".join(filter(str.isdigit, whatsapp))
+            if not num.startswith("55"): num = "55" + num
             
-            st.success(f"Parabéns {nome}! Pesquisa concluída.")
-            st.markdown(f"### [🛒 ACESSAR VITRINE DA {plataforma.upper()}]({link_final})")
-            
-            # Botão de WhatsApp após o formulário
-            st.link_button("📲 RECEBER NO WHATSAPP COM CARINHO", f"https://wa.me/{num_limpo}?text={msg_encoded}")
+            st.link_button("🎁 CLIQUE AQUI PARA RECEBER SEU LINK", f"https://wa.me/{num}?text={msg_link}")
         else:
-            st.error("Por favor, preencha o Nome e o WhatsApp.")
+            st.error("❌ Por favor, preencha seu Nome e WhatsApp.")
 
 else:
-    st.markdown("### 🔐 Painel Administrativo")
-    acesso = st.text_input("Senha de Acesso:", type="password")
-    if acesso == SENHA_ADMIN:
-        if st.session_state['historico']:
-            st.dataframe(pd.DataFrame(st.session_state['historico']), use_container_width=True)
+    st.title("📊 RELATÓRIO DE PESQUISAS")
+    senha = st.text_input("Senha Admin", type="password")
+    
+    if senha == SENHA_ADMIN:
+        if st.session_state['banco_dados']:
+            st.write("### CLIENTES QUE PARTICIPARAM:")
+            st.table(pd.DataFrame(st.session_state['banco_dados']))
         else:
-            st.info("Nenhuma pesquisa registrada.")
-    elif acesso != "":
-        st.error("Senha incorreta!")
+            st.warning("Ainda não recebemos pesquisas nesta sessão.")
+    elif senha != "":
+        st.error("Senha Incorreta")
