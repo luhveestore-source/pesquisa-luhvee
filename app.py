@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_gsheets import GSheetsConnection
 import urllib.parse
 import pandas as pd
 from datetime import datetime
@@ -33,11 +34,15 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SISTEMA DE MEMÓRIA (DASHBOARD TEMPORÁRIO) ---
-if 'banco_leads' not in st.session_state:
-    st.session_state['banco_leads'] = []
+# --- CONEXÃO COM GOOGLE SHEETS ---
+try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    # Lendo os dados existentes (A aba deve se chamar Página1)
+    data_existente = conn.read(worksheet="Página1", ttl=0)
+except Exception as e:
+    data_existente = pd.DataFrame(columns=["DATA", "CLIENTE", "WHATSAPP", "E-MAIL", "INTERESSE", "LOJA"])
 
-# --- CONFIGURAÇÕES ---
+# --- CONFIGURAÇÕES DO NEGÓCIO ---
 SEU_WHATSAPP = "5511948021428"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
@@ -79,45 +84,47 @@ menu = st.sidebar.radio("Navegação:", ["Fazer Pesquisa", "Dashboard ADM"])
 if menu == "Fazer Pesquisa":
     st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
     
-    with st.form("form_leads"):
+    with st.form("form_vendas", clear_on_submit=True):
         nome = st.text_input("Nome Completo")
         whatsapp = st.text_input("WhatsApp (com DDD)")
-        email = st.text_input("Seu melhor E-mail (Para novidades)")
-        escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
+        email = st.text_input("Seu melhor E-mail")
+        escolha = st.selectbox("Qual categoria você quer ver?", list(produtos.keys()))
         plataforma = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
         
-        st.info("💡 Se não encontrar o que deseja, escolha 'Outros' e me chame no Zap!")
-        
-        st.write("---")
-        submit = st.form_submit_button("CONCLUIR E RECEBER LISTA 💖")
+        st.info("💡 Dica: Se não encontrar o que deseja, escolha 'Outros' e me chame no Zap!")
+        submit = st.form_submit_button("CONCLUIR PESQUISA 💖")
 
     if submit:
         if nome and whatsapp and email:
-            # Salvando no Dashboard Local (Sempre em MAIÚSCULO)
-            st.session_state['banco_leads'].append({
-                "Data": datetime.now().strftime("%d/%m %H:%M"),
-                "Cliente": nome.upper(),
-                "WhatsApp": whatsapp,
-                "E-mail": email.lower(),
-                "Interesse": escolha,
-                "Loja": plataforma
-            })
+            # Criando a nova linha para a planilha
+            novo_lead = pd.DataFrame([{
+                "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "CLIENTE": nome.upper(),
+                "WHATSAPP": whatsapp,
+                "E-MAIL": email.lower(),
+                "INTERESSE": escolha,
+                "LOJA": plataforma
+            }])
             
+            # Atualizando a Planilha do Google
+            try:
+                updated_df = pd.concat([data_existente, novo_lead], ignore_index=True)
+                conn.update(worksheet="Página1", data=updated_df)
+                st.success("Sua pesquisa foi salva na nossa base! ✅")
+            except Exception as e:
+                st.error("Erro ao salvar na planilha. Verifique os Segredos e se a aba chama Página1.")
+
             st.markdown(f"<h1 style='text-align: center; color: #ff69b4;'>OBRIGADA, {nome.upper()}! ❤️</h1>", unsafe_allow_html=True)
             
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             
-            # Mensagem de Encomenda Especial
-            msg_encomenda = ""
-            if "Outros" in escolha:
-                msg_encomenda = "\n\n📢 AVISO: Vi que você não encontrou exatamente o que queria. Me conte aqui o que você busca que eu encontro para você e coloco na vitrine agora! ✨"
+            msg_encomenda = "\n\n📢 AVISO: Vi que não encontrou o que queria. Me conte o que busca que eu encontro para você! ✨" if "Outros" in escolha else ""
 
             texto_zap = (
                 f"Olá {nome.upper()}! ❤️\n\n"
                 f"Ficamos muito felizes com sua participação! 🥰\n\n"
                 f"Aqui está nossa vitrine atualizada de {escolha} na plataforma {plataforma}:\n"
                 f"👉 {link_final}{msg_encomenda}\n\n"
-                f"Lembrando que se você precisar de algo específico que não viu na lista, é só me falar por aqui que eu busco para você! 🛍️✨\n\n"
                 f"Caso queira conferir produtos em outras plataformas, segue nossa central de links:\n"
                 f"🔗 {CENTRALIZADOR}\n\n"
                 f"Siga-nos também:\n"
@@ -130,19 +137,19 @@ if menu == "Fazer Pesquisa":
             num_limpo = "".join(filter(str.isdigit, whatsapp))
             if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
             
-            st.link_button("🎁 CLIQUE AQUI PARA RECEBER SEU LINK NO WHATSAPP", f"https://wa.me/{num_limpo}?text={msg_encoded}")
+            st.link_button("🎁 CLIQUE PARA RECEBER NO WHATSAPP", f"https://wa.me/{num_limpo}?text={msg_encoded}")
         else:
-            st.error("❌ Por favor, preencha Nome, WhatsApp e E-mail.")
+            st.error("❌ Por favor, preencha todos os campos.")
 
 else:
-    st.title("📊 GESTÃO DE CLIENTES")
-    senha = st.text_input("Senha Admin", type="password")
+    st.title("📊 GESTÃO PERMANENTE DE CLIENTES")
+    senha = st.text_input("Senha de Acesso", type="password")
     if senha == SENHA_ADMIN:
-        if st.session_state['banco_leads']:
-            df = pd.DataFrame(st.session_state['banco_leads'])
-            st.table(df)
-            st.download_button("📥 Baixar Lista de Contatos", df.to_csv(index=False).encode('utf-8'), "clientes_luhvee.csv", "text/csv")
-        else:
-            st.warning("As pesquisas desta sessão aparecerão aqui. (Para salvar permanentemente, vamos conectar ao Google Sheets).")
+        try:
+            df_google = conn.read(worksheet="Página1", ttl=0)
+            st.write("### Dados salvos no Google Sheets:")
+            st.table(df_google)
+        except:
+            st.warning("Verifique a conexão com a planilha nos Secrets.")
     elif senha != "":
         st.error("Senha Incorreta")
