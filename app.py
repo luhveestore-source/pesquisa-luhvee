@@ -51,11 +51,11 @@ with st.form("form_vendas", clear_on_submit=True):
 
 if submit:
     if nome and whatsapp_cliente:
-        # Tratamento do número
+        # Tratamento automático do número (Garante o 55)
         num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
         if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
             
-        # Montagem da Mensagem (Modelo Carinhoso)
+        # Montagem da Mensagem Personalizada
         primeiro_nome = nome.split()[0].title()
         texto_zap = (
             f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
@@ -74,12 +74,10 @@ if submit:
         msg_encoded = urllib.parse.quote(texto_zap)
         link_zap = f"https://api.whatsapp.com/send?phone={num_limpo}&text={msg_encoded}"
         
-        st.success(f"Tudo pronto, {primeiro_nome}! Clique no botão abaixo para finalizar:")
+        st.success(f"Tudo pronto, {primeiro_nome}! Redirecionando...")
         
-        # Botão Grande para não ter erro de redirecionamento
-        st.link_button("🚀 FINALIZAR NO WHATSAPP", link_zap)
-        
-        # Tentativa de redirecionar sozinho
-        st.markdown(f'<meta http-equiv="refresh" content="2;URL={link_zap}">', unsafe_allow_html=True)
+        # Redirecionamento forçado
+        st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_zap}">', unsafe_allow_html=True)
+        st.link_button("CLIQUE AQUI PARA FINALIZAR", link_zap)
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
