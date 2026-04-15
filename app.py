@@ -35,10 +35,23 @@ LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
 LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 SENHA_ADMIN = "luhvee2026"
 
+# LISTA COMPLETA DE PRODUTOS DE VOLTA:
 produtos = {
-    "Perfumes e Bodysplash": "Fragrâncias irresistíveis!",
-    "Scarpins e Saltos": "Elegância em cada passo!",
-    "Moda Adulto e Infantil": "Estilo para toda a família!",
+    "Perfumes e Bodysplash (Fem/Masc)": "Fragrâncias irresistíveis! ✨",
+    "Scarpins e Saltos": "Elegância em cada passo! 👠",
+    "Moda Adulto e Infantil": "Estilo para toda a família! 👗",
+    "Mamãe e Bebê": "Cuidado para os pequenos! 👶",
+    "Pets": "Mimos para seu pet! 🐾",
+    "Eletrodomésticos": "Tecnologia para o seu lar! 🏠",
+    "Cama, Mesa e Banho": "Conforto e elegância! 🛏️",
+    "Ferramentas": "Qualidade para seus projetos! 🛠️",
+    "Jardinagem": "Beleza para o seu jardim! 🌻",
+    "Tênis Adulto e Infantil": "Conforto para o dia a dia! 👟",
+    "Informática": "Performance ao seu alcance! 💻",
+    "Móveis": "Design para o seu lar! 🛋️",
+    "Lingerie": "Autoestima em cada detalhe! 👙",
+    "Sexshop": "Momentos especiais com sigilo! 🔥",
+    "Brinquedos": "Diversão garantida! 🧸",
     "Outros / Encomenda Especial ✨": "Eu busco o produto dos seus sonhos!"
 }
 
@@ -74,12 +87,11 @@ if menu == "Fazer Pesquisa":
                 "LOJA": plataforma
             }])
             try:
-                # Tentativa de salvar
                 updated_df = pd.concat([data_existente, novo_lead], ignore_index=True)
                 conn.update(worksheet="Página1", data=updated_df)
-                st.success("Salvo com sucesso na planilha! ✅")
-            except Exception as e:
-                st.error("Erro ao salvar. Verifique se o link no Secrets está em UMA LINHA SÓ.")
+                st.success("Salvo com sucesso! ✅")
+            except Exception:
+                st.error("Erro ao salvar. Verifique se o link no Secret está em uma linha só.")
 
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             texto_zap = f"Olá {nome.upper()}! ❤️\n\nVitrine de *{escolha}* na {plataforma}:\n👉 {link_final}\n\nLuhVee Stores agradece! ❤️🌸"
@@ -98,4 +110,4 @@ else:
             df_google = conn.read(worksheet="Página1", ttl=0)
             st.table(df_google)
         except:
-            st.warning("Aguardando conexão com a planilha...")
+            st.warning("Verificando conexão com a planilha...")
