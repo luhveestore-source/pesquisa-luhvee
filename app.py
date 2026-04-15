@@ -1,8 +1,7 @@
 import streamlit as st
 import urllib.parse
-import pandas as pd
+import requests
 from datetime import datetime
-from streamlit_gsheets import GSheetsConnection
 
 # --- CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="LuhVee Stores", page_icon="🛍️", layout="centered")
@@ -20,24 +19,14 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- LINK DA PLANILHA DIRETO NO CÓDIGO ---
-URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1BMo0YmnJ4T3b5YFq3FEsAPWNHS65TXEa_G2OwKSjLMM/edit?usp=sharing"
+# --- LINK DO SEU SHEETDB INTEGRADO ---
+API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
 
-# --- CONEXÃO COM GOOGLE SHEETS ---
-try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
-    # Aqui o código usa o link direto
-    data_existente = conn.read(spreadsheet=URL_PLANILHA, worksheet="Página1", ttl=0)
-except Exception:
-    data_existente = pd.DataFrame(columns=["DATA", "CLIENTE", "WHATSAPP", "E-MAIL", "INTERESSE", "LOJA"])
-
-# --- CONFIGURAÇÕES ---
 SEU_WHATSAPP = "5511948021428"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
 LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
 LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
-SENHA_ADMIN = "luhvee2026"
 
 produtos = {
     "Perfumes e Bodysplash (Fem/Masc)": "Fragrâncias irresistíveis! ✨",
@@ -47,11 +36,8 @@ produtos = {
     "Pets": "Mimos para seu pet! 🐾",
     "Eletrodomésticos": "Tecnologia para o seu lar! 🏠",
     "Cama, Mesa e Banho": "Conforto e elegância! 🛏️",
-    "Ferramentas": "Qualidade para seus projetos! 🛠️",
-    "Jardinagem": "Beleza para o seu jardim! 🌻",
     "Tênis Adulto e Infantil": "Conforto para o dia a dia! 👟",
     "Informática": "Performance ao seu alcance! 💻",
-    "Móveis": "Design para o seu lar! 🛋️",
     "Lingerie": "Autoestima em cada detalhe! 👙",
     "Sexshop": "Momentos especiais com sigilo! 🔥",
     "Brinquedos": "Diversão garantida! 🧸",
@@ -67,50 +53,52 @@ with col2:
         st.header("✨ LUHVEE STORES")
 
 # --- INTERFACE ---
-menu = st.sidebar.radio("Navegação:", ["Fazer Pesquisa", "Dashboard ADM"])
+st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
 
-if menu == "Fazer Pesquisa":
-    st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
-    with st.form("form_vendas", clear_on_submit=True):
-        nome = st.text_input("Nome Completo")
-        whatsapp = st.text_input("WhatsApp (com DDD)")
-        email = st.text_input("Seu melhor E-mail")
-        escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
-        plataforma = st.radio("Onde prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
-        submit = st.form_submit_button("CONCLUIR PESQUISA ❤️")
+with st.form("form_vendas", clear_on_submit=True):
+    nome = st.text_input("Nome Completo")
+    whatsapp = st.text_input("WhatsApp (com DDD)")
+    email = st.text_input("Seu melhor E-mail")
+    escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
+    plataforma = st.radio("Onde prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
+    submit = st.form_submit_button("CONCLUIR PESQUISA ❤️")
 
-    if submit:
-        if nome and whatsapp and email:
-            novo_lead = pd.DataFrame([{
-                "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                "CLIENTE": nome.upper(),
-                "WHATSAPP": whatsapp,
-                "E-MAIL": email.lower(),
-                "INTERESSE": escolha,
-                "LOJA": plataforma
-            }])
-            try:
-                updated_df = pd.concat([data_existente, novo_lead], ignore_index=True)
-                conn.update(spreadsheet=URL_PLANILHA, worksheet="Página1", data=updated_df)
-                st.success("Salvo com sucesso na planilha! ✅")
-            except Exception as e:
-                st.error(f"Erro ao salvar: {e}")
-
-            link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
-            texto_zap = f"Olá {nome.upper()}! ❤️\n\nVitrine de *{escolha}* na {plataforma}:\n👉 {link_final}\n\nLuhVee Stores agradece! ❤️🌸"
-            msg_encoded = urllib.parse.quote(texto_zap, safe='')
-            num_limpo = "".join(filter(str.isdigit, whatsapp))
-            if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
-            st.link_button("🎁 RECEBER NO WHATSAPP", f"https://wa.me/{num_limpo}?text={msg_encoded}")
-        else:
-            st.error("❌ Preencha todos os campos.")
-
-else:
-    st.title("📊 GESTÃO DE CLIENTES")
-    senha = st.text_input("Senha Admin", type="password")
-    if senha == SENHA_ADMIN:
+if submit:
+    if nome and whatsapp and email:
+        # Dados para enviar ao SheetDB (Devem ser iguais aos títulos da sua planilha)
+        payload = {
+            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "CLIENTE": nome.upper(),
+            "WHATSAPP": whatsapp,
+            "E-MAIL": email.lower(),
+            "INTERESSE": escolha,
+            "LOJA": plataforma
+        }
+        
         try:
-            df_google = conn.read(spreadsheet=URL_PLANILHA, worksheet="Página1", ttl=0)
-            st.table(df_google)
+            # Envia os dados para a planilha
+            res = requests.post(API_URL, json={"data": [payload]})
+            if res.status_code == 201:
+                st.success("Dados salvos com sucesso na planilha! ✅")
+            else:
+                st.warning("Recebemos sua pesquisa! Clique no botão abaixo para o link.")
         except:
-            st.warning("Erro ao carregar os dados da planilha.")
+            st.error("Erro ao conectar com o banco de dados, mas você pode seguir pelo WhatsApp.")
+
+        # Preparação do link de redirecionamento
+        link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
+        
+        texto_zap = (
+            f"Olá {nome.upper()}! ❤️\n\n"
+            f"Aqui está sua vitrine de *{escolha}* na {plataforma}:\n"
+            f"👉 {link_final}\n\n"
+            f"LuhVee Stores agradece seu carinho! ❤️🌸"
+        )
+        
+        msg_encoded = urllib.parse.quote(texto_zap, safe='')
+        num_limpo = "".join(filter(str.isdigit, whatsapp))
+        if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
+        
+        st.link_button("🎁 CLIQUE PARA RECEBER NO WHATSAPP", f"https://wa.me/{num_limpo}?text={msg_encoded}")
+    else:
+        st.error("❌ Por favor, preencha todos os campos.")
