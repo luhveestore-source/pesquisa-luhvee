@@ -1,5 +1,7 @@
 import streamlit as st
 import urllib.parse
+import requests
+from datetime import datetime
 
 # --- CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="LuhVee Stores", page_icon="🛍️", layout="centered")
@@ -17,7 +19,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- LINKS ---
+# --- CONFIGURAÇÕES ---
+API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
 LINK_GRUPO_WHATSAPP = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
@@ -45,23 +48,35 @@ with st.form("form_vendas", clear_on_submit=True):
     ])
     
     st.write("---")
-    quero_grupo = st.checkbox("Quero participar do Grupo VIP da LuhVee! 🎁")
+    quero_grupo = st.checkbox("Quero entrar no Grupo VIP para promoções diárias! 🎁")
     
     submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
 if submit:
     if nome and whatsapp_cliente:
-        # Mensagem Profissional
+        # 1. SALVAR NA PLANILHA (VIA SHEETDB)
+        payload = {
+            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "CLIENTE": nome.upper(),
+            "WHATSAPP": whatsapp_cliente,
+            "INTERESSE": escolha
+        }
+        try:
+            requests.post(API_URL, json={"data": [payload]}, timeout=5)
+        except:
+            pass # Se a planilha falhar, o cliente ainda vai pro Whats
+
+        # 2. MONTAR MENSAGEM DO WHATSAPP
         msg_corpo = (
             f"Olá {nome.title()}! ❤️\n\n"
             f"Agora você faz parte da comunidade *LuhVee Stores*! 🥰\n\n"
             f"Vi que você tem interesse em: *{escolha}*.\n"
-            f"Aqui estão as nossas vitrines:\n"
+            f"Aqui está o link das nossas vitrines:\n"
             f"👉 {CENTRALIZADOR}\n\n"
         )
         
         if quero_grupo:
-            msg_corpo += f"🚀 Link do Grupo VIP para promoções diárias:\n🔗 {LINK_GRUPO_WHATSAPP}\n\n"
+            msg_corpo += f"🚀 Como você escolheu entrar no grupo, aqui está o link VIP:\n🔗 {LINK_GRUPO_WHATSAPP}\n\n"
         
         msg_corpo += f"Siga-nos no Instagram: {INSTAGRAM}\n\nBoas compras! ❤️🌸"
         
@@ -71,7 +86,8 @@ if submit:
         
         link_zap = f"https://wa.me/{num_limpo}?text={msg_encoded}"
         
-        st.success(f"Tudo pronto, {nome.split()[0]}! Redirecionando...")
+        st.success(f"Tudo pronto! Redirecionando...")
         st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_zap}">', unsafe_allow_html=True)
+        st.link_button("CLIQUE AQUI CASO NÃO ABRA", link_zap)
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
