@@ -38,7 +38,7 @@ st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>
 # --- FORMULÁRIO ---
 with st.form("form_vendas", clear_on_submit=True):
     nome = st.text_input("Seu Nome Completo")
-    whatsapp_cliente = st.text_input("Seu WhatsApp (com DDD)")
+    whatsapp_cliente = st.text_input("Seu WhatsApp (Ex: 11999999999)")
     
     escolha = st.selectbox("O que você procura hoje?", [
         "Perfumes e Bodysplash (Fem/Masc)", "Scarpins e Saltos", "Moda Adulto e Infantil", 
@@ -48,46 +48,56 @@ with st.form("form_vendas", clear_on_submit=True):
     ])
     
     st.write("---")
-    quero_grupo = st.checkbox("Quero entrar no Grupo VIP para promoções diárias! 🎁")
+    quero_grupo = st.checkbox("Quero participar do Grupo VIP da LuhVee! 🎁")
     
     submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
 if submit:
     if nome and whatsapp_cliente:
-        # 1. SALVAR NA PLANILHA (VIA SHEETDB)
+        # TRATAMENTO DO NÚMERO (Coloca o 55 automaticamente)
+        num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
+        if len(num_limpo) <= 11:  # Se o cliente não colocou 55
+            num_limpo = "55" + num_limpo
+            
+        # 1. SALVAR NA PLANILHA (SheetDB)
         payload = {
             "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
             "CLIENTE": nome.upper(),
-            "WHATSAPP": whatsapp_cliente,
+            "WHATSAPP": num_limpo,
             "INTERESSE": escolha
         }
         try:
             requests.post(API_URL, json={"data": [payload]}, timeout=5)
         except:
-            pass # Se a planilha falhar, o cliente ainda vai pro Whats
+            pass 
 
-        # 2. MONTAR MENSAGEM DO WHATSAPP
+        # 2. MONTAR MENSAGEM
         msg_corpo = (
             f"Olá {nome.title()}! ❤️\n\n"
             f"Agora você faz parte da comunidade *LuhVee Stores*! 🥰\n\n"
-            f"Vi que você tem interesse em: *{escolha}*.\n"
-            f"Aqui está o link das nossas vitrines:\n"
+            f"Aqui estão as nossas vitrines de *{escolha}*:\n"
             f"👉 {CENTRALIZADOR}\n\n"
         )
         
         if quero_grupo:
-            msg_corpo += f"🚀 Como você escolheu entrar no grupo, aqui está o link VIP:\n🔗 {LINK_GRUPO_WHATSAPP}\n\n"
+            msg_corpo += f"🚀 Link do Grupo VIP para promoções diárias:\n🔗 {LINK_GRUPO_WHATSAPP}\n\n"
         
         msg_corpo += f"Siga-nos no Instagram: {INSTAGRAM}\n\nBoas compras! ❤️🌸"
         
         msg_encoded = urllib.parse.quote(msg_corpo)
-        num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
-        if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
         
-        link_zap = f"https://wa.me/{num_limpo}?text={msg_encoded}"
+        # LINK FINAL COM 55 GARANTIDO
+        link_zap = f"https://api.whatsapp.com/send?phone={num_limpo}&text={msg_encoded}"
         
-        st.success(f"Tudo pronto! Redirecionando...")
-        st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_zap}">', unsafe_allow_html=True)
-        st.link_button("CLIQUE AQUI CASO NÃO ABRA", link_zap)
+        st.success(f"Tudo pronto, {nome.split()[0]}! Abrindo seu WhatsApp...")
+        
+        # REDIRECIONAMENTO COM JAVASCRIPT (Mais forte que o anterior)
+        st.markdown(f"""
+            <script>
+                window.open('{link_zap}', '_blank');
+            </script>
+            """, unsafe_allow_html=True)
+            
+        st.link_button("CLIQUE AQUI PARA ABRIR O WHATSAPP", link_zap)
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
