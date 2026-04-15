@@ -61,7 +61,7 @@ if menu == "Fazer Pesquisa":
         email = st.text_input("Seu melhor E-mail")
         escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
         plataforma = st.radio("Onde prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
-        submit = st.form_submit_button("CONCLUIR PESQUISA 💖")
+        submit = st.form_submit_button("CONCLUIR PESQUISA ❤️")
 
     if submit:
         if nome and whatsapp and email:
@@ -74,14 +74,15 @@ if menu == "Fazer Pesquisa":
                 "LOJA": plataforma
             }])
             try:
+                # Tentativa de salvar
                 updated_df = pd.concat([data_existente, novo_lead], ignore_index=True)
                 conn.update(worksheet="Página1", data=updated_df)
                 st.success("Salvo com sucesso na planilha! ✅")
             except Exception as e:
-                st.error("Erro ao salvar. Verifique se a aba chama Página1 e se o link no Secrets está em uma linha só.")
+                st.error("Erro ao salvar. Verifique se o link no Secrets está em UMA LINHA SÓ.")
 
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
-            texto_zap = f"Olá {nome.upper()}! ❤️\n\nVitrine de {escolha} na {plataforma}:\n👉 {link_final}\n\n🔗 Central: {CENTRALIZADOR}\n📸 Insta: {INSTAGRAM}\nLuhVee Stores agradece! ❤️🌸"
+            texto_zap = f"Olá {nome.upper()}! ❤️\n\nVitrine de *{escolha}* na {plataforma}:\n👉 {link_final}\n\nLuhVee Stores agradece! ❤️🌸"
             msg_encoded = urllib.parse.quote(texto_zap, safe='')
             num_limpo = "".join(filter(str.isdigit, whatsapp))
             if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
@@ -97,4 +98,4 @@ else:
             df_google = conn.read(worksheet="Página1", ttl=0)
             st.table(df_google)
         except:
-            st.warning("Aguardando conexão...")
+            st.warning("Aguardando conexão com a planilha...")
