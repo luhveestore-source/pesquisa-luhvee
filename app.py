@@ -11,7 +11,7 @@ st.markdown("""
     .stButton>button {
         background-color: #000000 !important; color: #ff69b4 !important; 
         border: 3px solid #ffd700 !important; border-radius: 15px !important;
-        width: 100% !important; font-size: 18px !important; font-weight: bold !important; height: 70px !important;
+        width: 100% !important; font-size: 16px !important; font-weight: bold !important; height: 70px !important;
     }
     label, p, h1, h2, h3 { color: #ffffff !important; font-weight: bold; }
     </style>
@@ -21,7 +21,6 @@ st.markdown("""
 LINK_GRUPO_WHATSAPP = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
-TIKTOK = "@luhvee.stores"
 
 # --- LOGO ---
 col1, col2, col3 = st.columns([1, 2, 1])
@@ -43,37 +42,36 @@ with st.form("form_vendas", clear_on_submit=True):
         "Tênis Adulto e Infantil", "Lingerie e Sexshop", "Outros ✨"
     ])
     
-    submit = st.form_submit_button("RECEBER PROMOÇÕES E VITRINES ❤️")
+    st.write("---")
+    quero_grupo = st.checkbox("Quero entrar no Grupo VIP para promoções diárias! 🎁")
+    
+    submit = st.form_submit_button("RECEBA PROMOÇÕES E VITRINES DA LUHVEE STORES ❤️")
 
 if submit:
     if nome and whatsapp_cliente:
-        # Mensagem Profissional para o privado do cliente
-        texto_zap = (
+        # Mensagem Profissional
+        msg_corpo = (
             f"Olá {nome.title()}! ❤️\n\n"
             f"Agora você faz parte da comunidade *LuhVee Stores*! 🥰\n\n"
             f"Aqui estão os links das nossas vitrines de *{escolha}*:\n"
             f"👉 {CENTRALIZADOR}\n\n"
-            f"🚀 Quer receber ofertas exclusivas antes de todo mundo? Participe do nosso Grupo VIP:\n"
-            f"🔗 {LINK_GRUPO_WHATSAPP}\n\n"
-            f"Siga-nos no Instagram: {INSTAGRAM}\n\n"
-            f"Boas compras! ❤️🌸"
         )
         
-        msg_encoded = urllib.parse.quote(texto_zap)
+        if quero_grupo:
+            msg_corpo += f"🚀 Como você escolheu entrar no grupo, aqui está o link VIP:\n🔗 {LINK_GRUPO_WHATSAPP}\n\n"
+        
+        msg_corpo += f"Siga-nos no Instagram: {INSTAGRAM}\n\nBoas compras! ❤️🌸"
+        
+        msg_encoded = urllib.parse.quote(msg_corpo)
         num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
         if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
         
-        link_zap_privado = f"https://wa.me/{num_limpo}?text={msg_encoded}"
+        link_zap = f"https://wa.me/{num_limpo}?text={msg_encoded}"
         
-        # Interface de Sucesso
-        st.success(f"Tudo pronto, {nome.split()[0]}! Enviando para o seu WhatsApp...")
+        st.success(f"Tudo pronto, {nome.split()[0]}! Estamos te enviando as vitrines...")
         
-        # Botão extra para o Grupo (Opcional para o cliente)
-        st.markdown(f"### 🎁 Presente Extra:")
-        st.link_button("ENTRAR NO GRUPO VIP (OPCIONAL)", LINK_GRUPO_WHATSAPP)
-        
-        # Redirecionamento automático para o privado dele
-        st.markdown(f'<meta http-equiv="refresh" content="2;URL={link_zap_privado}">', unsafe_allow_html=True)
-        
+        # Redirecionamento Automático
+        st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_zap}">', unsafe_allow_html=True)
+        st.link_button("CLIQUE AQUI SE NÃO ABRIR SOZINHO", link_zap)
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
