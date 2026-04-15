@@ -1,8 +1,8 @@
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 import urllib.parse
 import pandas as pd
 from datetime import datetime
+from streamlit_gsheets import GSheetsConnection
 
 # --- CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="LuhVee Stores", page_icon="🛍️", layout="centered")
@@ -20,10 +20,14 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# --- LINK DA PLANILHA DIRETO NO CÓDIGO ---
+URL_PLANILHA = "https://docs.google.com/spreadsheets/d/1BMo0YmnJ4T3b5YFq3FEsAPWNHS65TXEa_G2OwKSjLMM/edit?usp=sharing"
+
 # --- CONEXÃO COM GOOGLE SHEETS ---
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
-    data_existente = conn.read(worksheet="Página1", ttl=0)
+    # Aqui o código usa o link direto
+    data_existente = conn.read(spreadsheet=URL_PLANILHA, worksheet="Página1", ttl=0)
 except Exception:
     data_existente = pd.DataFrame(columns=["DATA", "CLIENTE", "WHATSAPP", "E-MAIL", "INTERESSE", "LOJA"])
 
@@ -35,7 +39,6 @@ LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
 LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 SENHA_ADMIN = "luhvee2026"
 
-# LISTA COMPLETA DE PRODUTOS DE VOLTA:
 produtos = {
     "Perfumes e Bodysplash (Fem/Masc)": "Fragrâncias irresistíveis! ✨",
     "Scarpins e Saltos": "Elegância em cada passo! 👠",
@@ -88,10 +91,10 @@ if menu == "Fazer Pesquisa":
             }])
             try:
                 updated_df = pd.concat([data_existente, novo_lead], ignore_index=True)
-                conn.update(worksheet="Página1", data=updated_df)
-                st.success("Salvo com sucesso! ✅")
-            except Exception:
-                st.error("Erro ao salvar. Verifique se o link no Secret está em uma linha só.")
+                conn.update(spreadsheet=URL_PLANILHA, worksheet="Página1", data=updated_df)
+                st.success("Salvo com sucesso na planilha! ✅")
+            except Exception as e:
+                st.error(f"Erro ao salvar: {e}")
 
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             texto_zap = f"Olá {nome.upper()}! ❤️\n\nVitrine de *{escolha}* na {plataforma}:\n👉 {link_final}\n\nLuhVee Stores agradece! ❤️🌸"
@@ -107,7 +110,7 @@ else:
     senha = st.text_input("Senha Admin", type="password")
     if senha == SENHA_ADMIN:
         try:
-            df_google = conn.read(worksheet="Página1", ttl=0)
+            df_google = conn.read(spreadsheet=URL_PLANILHA, worksheet="Página1", ttl=0)
             st.table(df_google)
         except:
-            st.warning("Verificando conexão com a planilha...")
+            st.warning("Erro ao carregar os dados da planilha.")
