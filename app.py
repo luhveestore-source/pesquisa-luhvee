@@ -1,6 +1,5 @@
 import streamlit as st
 import urllib.parse
-import requests
 from datetime import datetime
 
 # --- CONFIGURAÇÃO VISUAL ---
@@ -13,29 +12,19 @@ st.markdown("""
     .stButton>button {
         background-color: #000000 !important; color: #ff69b4 !important; 
         border: 3px solid #ffd700 !important; border-radius: 15px !important;
-        width: 100% !important; font-size: 22px !important; font-weight: bold !important; height: 65px !important;
+        width: 100% !important; font-size: 18px !important; font-weight: bold !important; height: 70px !important;
     }
     label, p, h1, h2, h3 { color: #ffffff !important; font-weight: bold; }
     </style>
     """, unsafe_allow_html=True)
 
 # --- CONFIGURAÇÕES ---
-API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
 SEU_WHATSAPP_NUMERO = "5511948021428"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
 TIKTOK = "@luhvee.stores"
 LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
 LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
-
-produtos = {
-    "Perfumes e Bodysplash": "Fragrâncias irresistíveis! ✨",
-    "Scarpins e Saltos": "Elegância em cada passo! 👠",
-    "Moda Adulto e Infantil": "Estilo para toda a família! 👗",
-    "Tênis Adulto e Infantil": "Conforto para o dia a dia! 👟",
-    "Lingerie e Sexshop": "Autoestima e momentos especiais! 🔥",
-    "Outros / Encomenda Especial ✨": "Eu busco o produto dos seus sonhos!"
-}
 
 # --- LOGO ---
 col1, col2, col3 = st.columns([1, 2, 1])
@@ -45,37 +34,27 @@ with col2:
     except:
         st.header("✨ LUHVEE STORES")
 
-# --- INTERFACE ---
 st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
 
+# --- FORMULÁRIO ---
 with st.form("form_vendas", clear_on_submit=True):
     nome = st.text_input("Nome Completo")
     whatsapp = st.text_input("WhatsApp (com DDD)")
-    email_cliente = st.text_input("Seu melhor E-mail")
-    escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
+    email = st.text_input("Seu melhor E-mail")
+    escolha = st.selectbox("O que você procura hoje?", [
+        "Perfumes e Bodysplash", "Scarpins e Saltos", "Moda Adulto e Infantil", 
+        "Tênis Adulto e Infantil", "Lingerie e Sexshop", "Outros / Encomenda Especial ✨"
+    ])
     plataforma = st.radio("Onde prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
+    
     submit = st.form_submit_button("RECEBA PROMOÇÕES DIÁRIAS DA LUHVEE STORES ❤️")
 
 if submit:
-    if nome and whatsapp and email_cliente:
-        # 1. Salva na planilha (Escondido)
-        payload = {
-            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "CLIENTE": nome.upper(),
-            "WHATSAPP": whatsapp,
-            "E-MAIL": email_cliente.lower(),
-            "INTERESSE": escolha,
-            "LOJA": plataforma
-        }
-        try:
-            requests.post(API_URL, json={"data": [payload]}, timeout=5)
-        except:
-            pass 
-
-        # 2. Define o Link Principal
+    if nome and whatsapp:
+        # Define o link baseado na escolha
         link_final = CENTRALIZADOR if plataforma == "WhatsApp Direto" else LINK_SHOPEE if plataforma == "Shopee" else LINK_ML
-
-        # 3. Monta a Mensagem
+        
+        # Monta a mensagem
         texto_zap = (
             f"Olá {nome.upper()}! ❤️\n\n"
             f"Obrigada por participar! 🥰\n\n"
@@ -86,15 +65,15 @@ if submit:
             f"LuhVee Stores agradece! ❤️🌸"
         )
         
-        msg_encoded = urllib.parse.quote(texto_zap, safe='')
+        msg_encoded = urllib.parse.quote(texto_zap)
         num_limpo = "".join(filter(str.isdigit, whatsapp))
         if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
         
         link_whatsapp = f"https://wa.me/{num_limpo}?text={msg_encoded}"
-
-        # Redirecionamento Automático
-        st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_whatsapp}">', unsafe_allow_html=True)
-        st.success("Abrindo seu WhatsApp... ❤️")
-        st.link_button("Clique aqui caso não abra sozinho", link_whatsapp)
+        
+        # Redirecionamento limpo
+        st.success("Tudo pronto! Redirecionando para as promoções... 🚀")
+        st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_whatsapp}">', unsafe_allow_html=True)
+        st.link_button("CLIQUE AQUI PARA ENTRAR NO WHATSAPP", link_whatsapp)
     else:
-        st.error("❌ Por favor, preencha todos os campos.")
+        st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
