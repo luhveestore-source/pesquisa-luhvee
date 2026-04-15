@@ -19,11 +19,14 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- CONFIGURAÇÕES ---
+# --- LINKS OFICIAIS ---
 API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
 LINK_GRUPO_WHATSAPP = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
-INSTAGRAM = "@luhveestore"
+INSTAGRAM = "https://www.instagram.com/luhveestore"
+TIKTOK = "https://www.tiktok.com/@luhvee.stores"
+LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
+LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 
 # --- LOGO ---
 col1, col2, col3 = st.columns([1, 2, 1])
@@ -47,57 +50,43 @@ with st.form("form_vendas", clear_on_submit=True):
         "Móveis", "Lingerie", "Sexshop", "Brinquedos", "Outros / Encomenda Especial ✨"
     ])
     
-    st.write("---")
-    quero_grupo = st.checkbox("Quero participar do Grupo VIP da LuhVee! 🎁")
-    
     submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
 if submit:
     if nome and whatsapp_cliente:
-        # TRATAMENTO DO NÚMERO (Coloca o 55 automaticamente)
+        # Tratamento do número
         num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
-        if len(num_limpo) <= 11:  # Se o cliente não colocou 55
-            num_limpo = "55" + num_limpo
+        if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
             
-        # 1. SALVAR NA PLANILHA (SheetDB)
-        payload = {
-            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "CLIENTE": nome.upper(),
-            "WHATSAPP": num_limpo,
-            "INTERESSE": escolha
-        }
-        try:
-            requests.post(API_URL, json={"data": [payload]}, timeout=5)
-        except:
-            pass 
+        # 1. Salva na Planilha
+        payload = {"DATA": datetime.now().strftime("%d/%m/%Y %H:%M"), "CLIENTE": nome.upper(), "WHATSAPP": num_limpo, "INTERESSE": escolha}
+        try: requests.post(API_URL, json={"data": [payload]}, timeout=5)
+        except: pass 
 
-        # 2. MONTAR MENSAGEM
-        msg_corpo = (
-            f"Olá {nome.title()}! ❤️\n\n"
-            f"Agora você faz parte da comunidade *LuhVee Stores*! 🥰\n\n"
-            f"Aqui estão as nossas vitrines de *{escolha}*:\n"
-            f"👉 {CENTRALIZADOR}\n\n"
+        # 2. Monta a Mensagem conforme seu modelo
+        primeiro_nome = nome.split()[0].title()
+        
+        texto_zap = (
+            f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
+            f"Obrigada por participar da nossa pesquisa! Como prometido, seguem os links para você arrasar nas compras:\n\n"
+            f"🛍️ *Shopee:* {LINK_SHOPEE}\n"
+            f"📦 *Mercado Livre:* {LINK_ML}\n\n"
+            f"Nos segue lá, as promoções não param! 🔥\n"
+            f"📸 *Instagram:* {INSTAGRAM}\n"
+            f"🎥 *TikTok:* {TIKTOK}\n"
+            f"🔗 *Centralizador:* {CENTRALIZADOR}\n\n"
+            f"Se quiser ficar sempre conectado conosco e receber ofertas diárias, entra no nosso grupo *LuhVee Stores*! 🎁\n"
+            f"👉 Segue o link: {LINK_GRUPO_WHATSAPP}\n\n"
+            f"Bjs e boas compras! 🛍️✨"
         )
         
-        if quero_grupo:
-            msg_corpo += f"🚀 Link do Grupo VIP para promoções diárias:\n🔗 {LINK_GRUPO_WHATSAPP}\n\n"
-        
-        msg_corpo += f"Siga-nos no Instagram: {INSTAGRAM}\n\nBoas compras! ❤️🌸"
-        
-        msg_encoded = urllib.parse.quote(msg_corpo)
-        
-        # LINK FINAL COM 55 GARANTIDO
+        msg_encoded = urllib.parse.quote(texto_zap)
         link_zap = f"https://api.whatsapp.com/send?phone={num_limpo}&text={msg_encoded}"
         
-        st.success(f"Tudo pronto, {nome.split()[0]}! Abrindo seu WhatsApp...")
+        st.success(f"Tudo pronto, {primeiro_nome}! Abrindo seu WhatsApp... ❤️")
         
-        # REDIRECIONAMENTO COM JAVASCRIPT (Mais forte que o anterior)
-        st.markdown(f"""
-            <script>
-                window.open('{link_zap}', '_blank');
-            </script>
-            """, unsafe_allow_html=True)
-            
-        st.link_button("CLIQUE AQUI PARA ABRIR O WHATSAPP", link_zap)
+        # Redirecionamento
+        st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_zap}">', unsafe_allow_html=True)
+        st.link_button("CLIQUE AQUI SE NÃO ABRIR SOZINHO", link_zap)
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
