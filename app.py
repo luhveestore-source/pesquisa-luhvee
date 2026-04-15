@@ -38,7 +38,7 @@ with col2:
 
 st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
 
-# --- FORMULÁRIO ---
+# --- FORMULÁRIO COMPLETO ---
 with st.form("form_vendas", clear_on_submit=True):
     nome = st.text_input("Seu Nome Completo")
     whatsapp_cliente = st.text_input("Seu WhatsApp (Ex: 11999999999)")
@@ -54,18 +54,25 @@ with st.form("form_vendas", clear_on_submit=True):
 
 if submit:
     if nome and whatsapp_cliente:
-        # Tratamento do número
+        # TRATAMENTO DO NÚMERO (Garante o 55)
         num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
-        if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
+        if len(num_limpo) <= 11:
+            num_limpo = "55" + num_limpo
             
-        # 1. Salva na Planilha
-        payload = {"DATA": datetime.now().strftime("%d/%m/%Y %H:%M"), "CLIENTE": nome.upper(), "WHATSAPP": num_limpo, "INTERESSE": escolha}
-        try: requests.post(API_URL, json={"data": [payload]}, timeout=5)
-        except: pass 
+        # 1. SALVAR NA PLANILHA (Silencioso)
+        payload = {
+            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "CLIENTE": nome.upper(),
+            "WHATSAPP": num_limpo,
+            "INTERESSE": escolha
+        }
+        try:
+            requests.post(API_URL, json={"data": [payload]}, timeout=5)
+        except:
+            pass 
 
-        # 2. Monta a Mensagem conforme seu modelo
+        # 2. MONTAGEM DA MENSAGEM (O modelo que você pediu)
         primeiro_nome = nome.split()[0].title()
-        
         texto_zap = (
             f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
             f"Obrigada por participar da nossa pesquisa! Como prometido, seguem os links para você arrasar nas compras:\n\n"
@@ -81,11 +88,13 @@ if submit:
         )
         
         msg_encoded = urllib.parse.quote(texto_zap)
+        
+        # Link Universal do WhatsApp
         link_zap = f"https://api.whatsapp.com/send?phone={num_limpo}&text={msg_encoded}"
         
         st.success(f"Tudo pronto, {primeiro_nome}! Abrindo seu WhatsApp... ❤️")
         
-        # Redirecionamento
+        # Redirecionamento forçado por HTML
         st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_zap}">', unsafe_allow_html=True)
         st.link_button("CLIQUE AQUI SE NÃO ABRIR SOZINHO", link_zap)
     else:
