@@ -1,6 +1,5 @@
 import streamlit as st
 import urllib.parse
-from datetime import datetime
 
 # --- CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="LuhVee Stores", page_icon="🛍️", layout="centered")
@@ -18,13 +17,11 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- CONFIGURAÇÕES ---
-SEU_WHATSAPP_NUMERO = "5511948021428"
+# --- LINKS ---
+LINK_GRUPO_WHATSAPP = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
 TIKTOK = "@luhvee.stores"
-LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
-LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 
 # --- LOGO ---
 col1, col2, col3 = st.columns([1, 2, 1])
@@ -38,42 +35,45 @@ st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>
 
 # --- FORMULÁRIO ---
 with st.form("form_vendas", clear_on_submit=True):
-    nome = st.text_input("Nome Completo")
-    whatsapp = st.text_input("WhatsApp (com DDD)")
-    email = st.text_input("Seu melhor E-mail")
-    escolha = st.selectbox("O que você procura hoje?", [
-        "Perfumes e Bodysplash", "Scarpins e Saltos", "Moda Adulto e Infantil", 
-        "Tênis Adulto e Infantil", "Lingerie e Sexshop", "Outros / Encomenda Especial ✨"
-    ])
-    plataforma = st.radio("Onde prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
+    nome = st.text_input("Seu Nome Completo")
+    whatsapp_cliente = st.text_input("Seu WhatsApp (com DDD)")
     
-    submit = st.form_submit_button("RECEBA PROMOÇÕES DIÁRIAS DA LUHVEE STORES ❤️")
+    escolha = st.selectbox("O que você mais gosta?", [
+        "Perfumes e Bodysplash", "Scarpins e Saltos", "Moda Adulto e Infantil", 
+        "Tênis Adulto e Infantil", "Lingerie e Sexshop", "Outros ✨"
+    ])
+    
+    submit = st.form_submit_button("RECEBER PROMOÇÕES E VITRINES ❤️")
 
 if submit:
-    if nome and whatsapp:
-        # Define o link baseado na escolha
-        link_final = CENTRALIZADOR if plataforma == "WhatsApp Direto" else LINK_SHOPEE if plataforma == "Shopee" else LINK_ML
-        
-        # Monta a mensagem
+    if nome and whatsapp_cliente:
+        # Mensagem Profissional para o privado do cliente
         texto_zap = (
-            f"Olá {nome.upper()}! ❤️\n\n"
-            f"Obrigada por participar! 🥰\n\n"
-            f"Aqui está o seu acesso para *{escolha}*:\n👉 {link_final}\n\n"
-            f"🔗 Central de Links: {CENTRALIZADOR}\n"
-            f"📱 Meu Whats: {SEU_WHATSAPP_NUMERO}\n\n"
-            f"Siga-nos:\n📸 Insta: {INSTAGRAM} | 🎥 TikTok: {TIKTOK}\n\n"
-            f"LuhVee Stores agradece! ❤️🌸"
+            f"Olá {nome.title()}! ❤️\n\n"
+            f"Agora você faz parte da comunidade *LuhVee Stores*! 🥰\n\n"
+            f"Aqui estão os links das nossas vitrines de *{escolha}*:\n"
+            f"👉 {CENTRALIZADOR}\n\n"
+            f"🚀 Quer receber ofertas exclusivas antes de todo mundo? Participe do nosso Grupo VIP:\n"
+            f"🔗 {LINK_GRUPO_WHATSAPP}\n\n"
+            f"Siga-nos no Instagram: {INSTAGRAM}\n\n"
+            f"Boas compras! ❤️🌸"
         )
         
         msg_encoded = urllib.parse.quote(texto_zap)
-        num_limpo = "".join(filter(str.isdigit, whatsapp))
+        num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
         if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
         
-        link_whatsapp = f"https://wa.me/{num_limpo}?text={msg_encoded}"
+        link_zap_privado = f"https://wa.me/{num_limpo}?text={msg_encoded}"
         
-        # Redirecionamento limpo
-        st.success("Tudo pronto! Redirecionando para as promoções... 🚀")
-        st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_whatsapp}">', unsafe_allow_html=True)
-        st.link_button("CLIQUE AQUI PARA ENTRAR NO WHATSAPP", link_whatsapp)
+        # Interface de Sucesso
+        st.success(f"Tudo pronto, {nome.split()[0]}! Enviando para o seu WhatsApp...")
+        
+        # Botão extra para o Grupo (Opcional para o cliente)
+        st.markdown(f"### 🎁 Presente Extra:")
+        st.link_button("ENTRAR NO GRUPO VIP (OPCIONAL)", LINK_GRUPO_WHATSAPP)
+        
+        # Redirecionamento automático para o privado dele
+        st.markdown(f'<meta http-equiv="refresh" content="2;URL={link_zap_privado}">', unsafe_allow_html=True)
+        
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
