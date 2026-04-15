@@ -1,5 +1,7 @@
 import streamlit as st
 import urllib.parse
+import requests
+from datetime import datetime
 
 # --- CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="LuhVee Stores", page_icon="🛍️", layout="centered")
@@ -17,7 +19,8 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- LINKS ---
+# --- CONFIGURAÇÕES ---
+API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
 LINK_GRUPO = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "https://www.instagram.com/luhveestore"
@@ -48,16 +51,27 @@ with st.form("form_vendas", clear_on_submit=True):
 
 if submit:
     if nome and whatsapp_cliente:
-        # Garante o 55 no número
+        # Tratamento do número
         num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
         if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
-            
         primeiro_nome = nome.split()[0].title()
-        
-        # Sua Mensagem Personalizada
+
+        # --- SALVAMENTO NA PLANILHA ---
+        payload = {
+            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            "CLIENTE": nome.upper(),
+            "WHATSAPP": num_limpo,
+            "INTERESSE": escolha
+        }
+        try:
+            requests.post(API_URL, json={"data": [payload]}, timeout=5)
+        except:
+            pass # Se falhar, não trava o site
+
+        # --- MENSAGEM DO WHATSAPP ---
         texto_zap = (
             f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
-            f"Obrigada por participar da nossa pesquisa! Como prometido, seguem os links para você arrasar nas compras:\n\n"
+            f"Obrigada por participar da nossa pesquisa! Seguem os links para você arrasar nas compras:\n\n"
             f"🛍️ *Shopee:* {LINK_SHOPEE}\n"
             f"📦 *Mercado Livre:* {LINK_ML}\n\n"
             f"Nos segue lá, as promoções não param! 🔥\n"
@@ -70,12 +84,9 @@ if submit:
         )
         
         msg_encoded = urllib.parse.quote(texto_zap)
-        # Usamos o link direto para não dar erro de conexão recusada
         link_final = f"https://wa.me/{num_limpo}?text={msg_encoded}"
         
-        st.success(f"Tudo pronto, {primeiro_nome}! Clique no botão abaixo para receber tudo no seu WhatsApp:")
-        
-        # BOTÃO GRANDE PARA O WHATSAPP (Isso evita o erro da foto)
-        st.link_button("🎁 CLIQUE AQUI PARA ABRIR SEU WHATSAPP", link_final)
+        st.success(f"Tudo pronto, {primeiro_nome}! Clique abaixo:")
+        st.link_button("🎁 ABRIR MEU WHATSAPP", link_final)
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
