@@ -19,12 +19,12 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- LINK DO SEU SHEETDB INTEGRADO ---
+# --- CONFIGURAÇÕES ---
 API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
-
-SEU_WHATSAPP = "5511948021428"
+SEU_WHATSAPP_NUMERO = "5511948021428"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
+TIKTOK = "@luhvee.stores"
 LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
 LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 
@@ -37,7 +37,6 @@ produtos = {
     "Eletrodomésticos": "Tecnologia para o seu lar! 🏠",
     "Cama, Mesa e Banho": "Conforto e elegância! 🛏️",
     "Tênis Adulto e Infantil": "Conforto para o dia a dia! 👟",
-    "Informática": "Performance ao seu alcance! 💻",
     "Lingerie": "Autoestima em cada detalhe! 👙",
     "Sexshop": "Momentos especiais com sigilo! 🔥",
     "Brinquedos": "Diversão garantida! 🧸",
@@ -61,44 +60,39 @@ with st.form("form_vendas", clear_on_submit=True):
     email = st.text_input("Seu melhor E-mail")
     escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
     plataforma = st.radio("Onde prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
-    submit = st.form_submit_button("CONCLUIR PESQUISA ❤️")
+    submit = st.form_submit_button("FINALIZAR E RECEBER VITRINE 🎁")
 
 if submit:
     if nome and whatsapp and email:
-        # Dados para enviar ao SheetDB (Devem ser iguais aos títulos da sua planilha)
-        payload = {
-            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "CLIENTE": nome.upper(),
-            "WHATSAPP": whatsapp,
-            "E-MAIL": email.lower(),
-            "INTERESSE": escolha,
-            "LOJA": plataforma
-        }
-        
-        try:
-            # Envia os dados para a planilha
-            res = requests.post(API_URL, json={"data": [payload]})
-            if res.status_code == 201:
-                st.success("Dados salvos com sucesso na planilha! ✅")
-            else:
-                st.warning("Recebemos sua pesquisa! Clique no botão abaixo para o link.")
-        except:
-            st.error("Erro ao conectar com o banco de dados, mas você pode seguir pelo WhatsApp.")
+        # 1. Salva na planilha (Escondido)
+        payload = {"DATA": datetime.now().strftime("%d/%m/%Y %H:%M"), "CLIENTE": nome.upper(), "WHATSAPP": whatsapp, "E-MAIL": email.lower(), "INTERESSE": escolha, "LOJA": plataforma}
+        try: requests.post(API_URL, json={"data": [payload]})
+        except: pass
 
-        # Preparação do link de redirecionamento
-        link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
-        
+        # 2. Define o Link de Destino
+        link_final = CENTRALIZADOR if plataforma == "WhatsApp Direto" else LINK_SHOPEE if plataforma == "Shopee" else LINK_ML
+
+        # 3. Monta a Mensagem Completa
         texto_zap = (
             f"Olá {nome.upper()}! ❤️\n\n"
-            f"Aqui está sua vitrine de *{escolha}* na {plataforma}:\n"
-            f"👉 {link_final}\n\n"
-            f"LuhVee Stores agradece seu carinho! ❤️🌸"
+            f"Ficamos muito felizes com sua participação! 🥰\n\n"
+            f"Aqui está o acesso para *{escolha}*:\n👉 {link_final}\n\n"
+            f"🔗 Nossa Central: {CENTRALIZADOR}\n"
+            f"📱 Meu WhatsApp: {SEU_WHATSAPP_NUMERO}\n\n"
+            f"Siga-nos para novidades:\n"
+            f"📸 Insta: {INSTAGRAM} | 🎥 TikTok: {TIKTOK}\n\n"
+            f"LuhVee Stores agradece! ❤️🌸"
         )
         
         msg_encoded = urllib.parse.quote(texto_zap, safe='')
         num_limpo = "".join(filter(str.isdigit, whatsapp))
         if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
         
-        st.link_button("🎁 CLIQUE PARA RECEBER NO WHATSAPP", f"https://wa.me/{num_limpo}?text={msg_encoded}")
+        link_whatsapp = f"https://wa.me/{num_limpo}?text={msg_encoded}"
+
+        # --- O PULO DO GATO: REDIRECIONAMENTO AUTOMÁTICO ---
+        st.markdown(f'<meta http-equiv="refresh" content="0;URL={link_whatsapp}">', unsafe_allow_html=True)
+        st.success("Redirecionando para o seu WhatsApp... 🚀")
+        st.link_button("Caso não abra, clique aqui", link_whatsapp)
     else:
         st.error("❌ Por favor, preencha todos os campos.")
