@@ -33,9 +33,9 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- MEMÓRIA DO DASHBOARD ---
-if 'historico_vendas' not in st.session_state:
-    st.session_state['historico_vendas'] = []
+# --- SISTEMA DE MEMÓRIA (DASHBOARD TEMPORÁRIO) ---
+if 'banco_leads' not in st.session_state:
+    st.session_state['banco_leads'] = []
 
 # --- CONFIGURAÇÕES ---
 SEU_WHATSAPP = "5511948021428"
@@ -79,24 +79,26 @@ menu = st.sidebar.radio("Navegação:", ["Fazer Pesquisa", "Dashboard ADM"])
 if menu == "Fazer Pesquisa":
     st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
     
-    with st.form("form_vendas"):
+    with st.form("form_leads"):
         nome = st.text_input("Nome Completo")
         whatsapp = st.text_input("WhatsApp (com DDD)")
+        email = st.text_input("Seu melhor E-mail (Para novidades)")
         escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
         plataforma = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
         
-        st.info("💡 Dica: Se não encontrar o que precisa, escolha 'Outros' e me chame no Zap!")
+        st.info("💡 Se não encontrar o que deseja, escolha 'Outros' e me chame no Zap!")
         
         st.write("---")
-        st.write("📢 *CLIQUE ABAIXO PARA FINALIZAR:*")
-        submit = st.form_submit_button("CONCLUIR PESQUISA 💖")
+        submit = st.form_submit_button("CONCLUIR E RECEBER LISTA 💖")
 
     if submit:
-        if nome and whatsapp:
-            st.session_state['historico_vendas'].append({
+        if nome and whatsapp and email:
+            # Salvando no Dashboard Local (Sempre em MAIÚSCULO)
+            st.session_state['banco_leads'].append({
                 "Data": datetime.now().strftime("%d/%m %H:%M"),
                 "Cliente": nome.upper(),
                 "WhatsApp": whatsapp,
+                "E-mail": email.lower(),
                 "Interesse": escolha,
                 "Loja": plataforma
             })
@@ -105,7 +107,7 @@ if menu == "Fazer Pesquisa":
             
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
             
-            # --- MENSAGEM DO WHATSAPP (COM TEXTO DE ENCOMENDA) ---
+            # Mensagem de Encomenda Especial
             msg_encomenda = ""
             if "Outros" in escolha:
                 msg_encomenda = "\n\n📢 AVISO: Vi que você não encontrou exatamente o que queria. Me conte aqui o que você busca que eu encontro para você e coloco na vitrine agora! ✨"
@@ -115,6 +117,7 @@ if menu == "Fazer Pesquisa":
                 f"Ficamos muito felizes com sua participação! 🥰\n\n"
                 f"Aqui está nossa vitrine atualizada de {escolha} na plataforma {plataforma}:\n"
                 f"👉 {link_final}{msg_encomenda}\n\n"
+                f"Lembrando que se você precisar de algo específico que não viu na lista, é só me falar por aqui que eu busco para você! 🛍️✨\n\n"
                 f"Caso queira conferir produtos em outras plataformas, segue nossa central de links:\n"
                 f"🔗 {CENTRALIZADOR}\n\n"
                 f"Siga-nos também:\n"
@@ -123,22 +126,23 @@ if menu == "Fazer Pesquisa":
                 f"LuhVee Stores agradece seu carinho! ❤️🌸"
             )
             
-            # Codificação segura para emojis
             msg_encoded = urllib.parse.quote(texto_zap, safe='')
             num_limpo = "".join(filter(str.isdigit, whatsapp))
             if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
             
-            st.link_button("🎁 CLIQUE AQUI PARA RECEBER SEU LINK", f"https://wa.me/{num_limpo}?text={msg_encoded}")
+            st.link_button("🎁 CLIQUE AQUI PARA RECEBER SEU LINK NO WHATSAPP", f"https://wa.me/{num_limpo}?text={msg_encoded}")
         else:
-            st.error("❌ Por favor, preencha Nome e WhatsApp.")
+            st.error("❌ Por favor, preencha Nome, WhatsApp e E-mail.")
 
 else:
-    st.title("📊 DASHBOARD DE VENDAS")
-    senha = st.text_input("Senha de Acesso", type="password")
+    st.title("📊 GESTÃO DE CLIENTES")
+    senha = st.text_input("Senha Admin", type="password")
     if senha == SENHA_ADMIN:
-        if st.session_state['historico_vendas']:
-            st.table(pd.DataFrame(st.session_state['historico_vendas']))
+        if st.session_state['banco_leads']:
+            df = pd.DataFrame(st.session_state['banco_leads'])
+            st.table(df)
+            st.download_button("📥 Baixar Lista de Contatos", df.to_csv(index=False).encode('utf-8'), "clientes_luhvee.csv", "text/csv")
         else:
-            st.warning("Ainda não há pesquisas registradas.")
+            st.warning("As pesquisas desta sessão aparecerão aqui. (Para salvar permanentemente, vamos conectar ao Google Sheets).")
     elif senha != "":
         st.error("Senha Incorreta")
