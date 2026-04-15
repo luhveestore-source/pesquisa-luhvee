@@ -31,17 +31,14 @@ except Exception:
 SEU_WHATSAPP = "5511948021428"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "@luhveestore"
-TIKTOK = "@luhvee.stores"
 LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
 LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 SENHA_ADMIN = "luhvee2026"
 
 produtos = {
-    "Perfumes e Bodysplash (Fem/Masc)": "Fragrâncias irresistíveis!",
+    "Perfumes e Bodysplash": "Fragrâncias irresistíveis!",
     "Scarpins e Saltos": "Elegância em cada passo!",
     "Moda Adulto e Infantil": "Estilo para toda a família!",
-    "Mamãe e Bebê": "Cuidado para os pequenos!",
-    "Pets": "Mimos para seu pet!",
     "Outros / Encomenda Especial ✨": "Eu busco o produto dos seus sonhos!"
 }
 
@@ -63,7 +60,7 @@ if menu == "Fazer Pesquisa":
         whatsapp = st.text_input("WhatsApp (com DDD)")
         email = st.text_input("Seu melhor E-mail")
         escolha = st.selectbox("O que você procura hoje?", list(produtos.keys()))
-        plataforma = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
+        plataforma = st.radio("Onde prefere comprar?", ["Shopee", "Mercado Livre", "WhatsApp Direto"])
         submit = st.form_submit_button("CONCLUIR PESQUISA 💖")
 
     if submit:
@@ -77,20 +74,20 @@ if menu == "Fazer Pesquisa":
                 "LOJA": plataforma
             }])
             try:
-                # Forçamos a atualização limpando espaços
                 updated_df = pd.concat([data_existente, novo_lead], ignore_index=True)
                 conn.update(worksheet="Página1", data=updated_df)
                 st.success("Salvo com sucesso na planilha! ✅")
             except Exception as e:
-                st.error(f"Erro técnico: {e}")
+                st.error("Erro ao salvar. Verifique se a aba chama Página1 e se o link no Secrets está em uma linha só.")
 
             link_final = LINK_SHOPEE if plataforma == "Shopee" else LINK_ML if plataforma == "Mercado Livre" else f"https://wa.me/{SEU_WHATSAPP}"
-            msg_encomenda = "\n\n📢 AVISO: Vi que não encontrou o que queria. Diga-me o que busca!" if "Outros" in escolha else ""
-            texto_zap = f"Olá {nome.upper()}! ❤️\n\nVitrine de {escolha} na {plataforma}:\n👉 {link_final}{msg_encomenda}\n\n🔗 Central: {CENTRALIZADOR}\n📸 Insta: {INSTAGRAM}\nLuhVee Stores agradece! ❤️🌸"
+            texto_zap = f"Olá {nome.upper()}! ❤️\n\nVitrine de {escolha} na {plataforma}:\n👉 {link_final}\n\n🔗 Central: {CENTRALIZADOR}\n📸 Insta: {INSTAGRAM}\nLuhVee Stores agradece! ❤️🌸"
             msg_encoded = urllib.parse.quote(texto_zap, safe='')
             num_limpo = "".join(filter(str.isdigit, whatsapp))
             if not num_limpo.startswith("55"): num_limpo = "55" + num_limpo
             st.link_button("🎁 RECEBER NO WHATSAPP", f"https://wa.me/{num_limpo}?text={msg_encoded}")
+        else:
+            st.error("❌ Preencha todos os campos.")
 
 else:
     st.title("📊 GESTÃO DE CLIENTES")
@@ -100,4 +97,4 @@ else:
             df_google = conn.read(worksheet="Página1", ttl=0)
             st.table(df_google)
         except:
-            st.warning("Aguardando conexão com a planilha...")
+            st.warning("Aguardando conexão...")
