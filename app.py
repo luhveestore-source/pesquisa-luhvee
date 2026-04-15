@@ -1,7 +1,5 @@
 import streamlit as st
 import urllib.parse
-import requests
-from datetime import datetime
 
 # --- CONFIGURAÇÃO VISUAL ---
 st.set_page_config(page_title="LuhVee Stores", page_icon="🛍️", layout="centered")
@@ -20,7 +18,6 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- LINKS OFICIAIS ---
-API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
 LINK_GRUPO_WHATSAPP = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
 CENTRALIZADOR = "https://luhveestore-unbgvh5h.manus.space"
 INSTAGRAM = "https://www.instagram.com/luhveestore"
@@ -38,7 +35,7 @@ with col2:
 
 st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
 
-# --- FORMULÁRIO COMPLETO ---
+# --- FORMULÁRIO ---
 with st.form("form_vendas", clear_on_submit=True):
     nome = st.text_input("Seu Nome Completo")
     whatsapp_cliente = st.text_input("Seu WhatsApp (Ex: 11999999999)")
@@ -47,31 +44,18 @@ with st.form("form_vendas", clear_on_submit=True):
         "Perfumes e Bodysplash (Fem/Masc)", "Scarpins e Saltos", "Moda Adulto e Infantil", 
         "Mamãe e Bebê", "Pets", "Eletrodomésticos", "Cama, Mesa e Banho", 
         "Ferramentas", "Jardinagem", "Tênis Adulto e Infantil", "Informática", 
-        "Móveis", "Lingerie", "Sexshop", "Brinquedos", "Outros / Encomenda Especial ✨"
+        "Móveis", "Lingerie", "Sexshop", "Brinquedos", "Outros ✨"
     ])
     
     submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
 if submit:
     if nome and whatsapp_cliente:
-        # TRATAMENTO DO NÚMERO (Garante o 55)
+        # Tratamento do número
         num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
-        if len(num_limpo) <= 11:
-            num_limpo = "55" + num_limpo
+        if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
             
-        # 1. SALVAR NA PLANILHA (Silencioso)
-        payload = {
-            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "CLIENTE": nome.upper(),
-            "WHATSAPP": num_limpo,
-            "INTERESSE": escolha
-        }
-        try:
-            requests.post(API_URL, json={"data": [payload]}, timeout=5)
-        except:
-            pass 
-
-        # 2. MONTAGEM DA MENSAGEM (O modelo que você pediu)
+        # Montagem da Mensagem (Modelo Carinhoso)
         primeiro_nome = nome.split()[0].title()
         texto_zap = (
             f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
@@ -88,14 +72,14 @@ if submit:
         )
         
         msg_encoded = urllib.parse.quote(texto_zap)
-        
-        # Link Universal do WhatsApp
         link_zap = f"https://api.whatsapp.com/send?phone={num_limpo}&text={msg_encoded}"
         
-        st.success(f"Tudo pronto, {primeiro_nome}! Abrindo seu WhatsApp... ❤️")
+        st.success(f"Tudo pronto, {primeiro_nome}! Clique no botão abaixo para finalizar:")
         
-        # Redirecionamento forçado por HTML
-        st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_zap}">', unsafe_allow_html=True)
-        st.link_button("CLIQUE AQUI SE NÃO ABRIR SOZINHO", link_zap)
+        # Botão Grande para não ter erro de redirecionamento
+        st.link_button("🚀 FINALIZAR NO WHATSAPP", link_zap)
+        
+        # Tentativa de redirecionar sozinho
+        st.markdown(f'<meta http-equiv="refresh" content="2;URL={link_zap}">', unsafe_allow_html=True)
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
