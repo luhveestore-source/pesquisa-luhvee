@@ -11,7 +11,7 @@ st.markdown("""
     .stButton>button {
         background-color: #000000 !important; color: #ff69b4 !important; 
         border: 3px solid #ffd700 !important; border-radius: 15px !important;
-        width: 100% !important; font-size: 16px !important; font-weight: bold !important; height: 70px !important;
+        width: 100% !important; font-size: 18px !important; font-weight: bold !important; height: 75px !important;
     }
     label, p, h1, h2, h3 { color: #ffffff !important; font-weight: bold; }
     </style>
@@ -37,15 +37,17 @@ with st.form("form_vendas", clear_on_submit=True):
     nome = st.text_input("Seu Nome Completo")
     whatsapp_cliente = st.text_input("Seu WhatsApp (com DDD)")
     
-    escolha = st.selectbox("O que você mais gosta?", [
-        "Perfumes e Bodysplash", "Scarpins e Saltos", "Moda Adulto e Infantil", 
-        "Tênis Adulto e Infantil", "Lingerie e Sexshop", "Outros ✨"
+    escolha = st.selectbox("O que você procura hoje?", [
+        "Perfumes e Bodysplash (Fem/Masc)", "Scarpins e Saltos", "Moda Adulto e Infantil", 
+        "Mamãe e Bebê", "Pets", "Eletrodomésticos", "Cama, Mesa e Banho", 
+        "Ferramentas", "Jardinagem", "Tênis Adulto e Infantil", "Informática", 
+        "Móveis", "Lingerie", "Sexshop", "Brinquedos", "Outros / Encomenda Especial ✨"
     ])
     
     st.write("---")
-    quero_grupo = st.checkbox("Quero entrar no Grupo VIP para promoções diárias! 🎁")
+    quero_grupo = st.checkbox("Quero participar do Grupo VIP da LuhVee! 🎁")
     
-    submit = st.form_submit_button("RECEBA PROMOÇÕES E VITRINES DA LUHVEE STORES ❤️")
+    submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
 if submit:
     if nome and whatsapp_cliente:
@@ -53,12 +55,13 @@ if submit:
         msg_corpo = (
             f"Olá {nome.title()}! ❤️\n\n"
             f"Agora você faz parte da comunidade *LuhVee Stores*! 🥰\n\n"
-            f"Aqui estão os links das nossas vitrines de *{escolha}*:\n"
+            f"Vi que você tem interesse em: *{escolha}*.\n"
+            f"Aqui estão as nossas vitrines:\n"
             f"👉 {CENTRALIZADOR}\n\n"
         )
         
         if quero_grupo:
-            msg_corpo += f"🚀 Como você escolheu entrar no grupo, aqui está o link VIP:\n🔗 {LINK_GRUPO_WHATSAPP}\n\n"
+            msg_corpo += f"🚀 Link do Grupo VIP para promoções diárias:\n🔗 {LINK_GRUPO_WHATSAPP}\n\n"
         
         msg_corpo += f"Siga-nos no Instagram: {INSTAGRAM}\n\nBoas compras! ❤️🌸"
         
@@ -68,10 +71,7 @@ if submit:
         
         link_zap = f"https://wa.me/{num_limpo}?text={msg_encoded}"
         
-        st.success(f"Tudo pronto, {nome.split()[0]}! Estamos te enviando as vitrines...")
-        
-        # Redirecionamento Automático
+        st.success(f"Tudo pronto, {nome.split()[0]}! Redirecionando...")
         st.markdown(f'<meta http-equiv="refresh" content="1;URL={link_zap}">', unsafe_allow_html=True)
-        st.link_button("CLIQUE AQUI SE NÃO ABRIR SOZINHO", link_zap)
     else:
         st.error("❌ Por favor, preencha o Nome e o WhatsApp.")
