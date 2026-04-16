@@ -19,22 +19,23 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- CONFIGURAÇÕES ---
+# --- LINKS OFICIAIS ---
 API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
-LINK_GRUPO = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
 NOVO_HUB = "https://links-luhveestore.streamlit.app/"
+LINK_GRUPO = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
+INSTAGRAM = "https://www.instagram.com/luhveestore"
+TIKTOK = "https://www.tiktok.com/@luhvee.stores"
+LINK_SHOPEE = "https://collshp.com/luhveestores?view=storefront"
+LINK_ML = "https://www.mercadolivre.com.br/social/axwelloliveira"
 
 # --- LOGO ---
-col1, col2, col3 = st.columns([1, 2, 1])
-with col2:
-    st.markdown("<h1 style='text-align: center; color: #ff69b4;'>LuhVee Stores</h1>", unsafe_allow_html=True)
-
+st.markdown("<h1 style='text-align: center; color: #ff69b4;'>LuhVee Stores</h1>", unsafe_allow_html=True)
 st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
 
 # --- FORMULÁRIO ---
 with st.form("form_vendas", clear_on_submit=True):
     nome = st.text_input("Seu Nome Completo")
-    email = st.text_input("Seu E-mail") # CAMPO NOVO
+    email = st.text_input("Seu E-mail")
     whatsapp_cliente = st.text_input("Seu WhatsApp (Ex: 11999999999)")
     
     escolha = st.selectbox("O que você procura hoje?", [
@@ -44,58 +45,71 @@ with st.form("form_vendas", clear_on_submit=True):
         "Móveis", "Lingerie", "Sexshop", "Brinquedos", "Outros ✨"
     ])
 
-    loja_pref = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre"]) # CAMPO NOVO
+    loja_pref = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre"])
     
     submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
 if submit:
     if nome and whatsapp_cliente and email:
-        # Tratamento do número
         num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
         if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
         primeiro_nome = nome.split()[0].title()
 
-        # --- SALVAMENTO NA PLANILHA ---
-        payload = {
-            "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "CLIENTE": nome.upper(),
-            "WHATSAPP": num_limpo,
-            "E-MAIL": email.lower(),
-            "INTERESSE": escolha,
-            "LOJA": loja_pref
-        }
-        try:
-            requests.post(API_URL, json={"data": [payload]}, timeout=5)
-        except:
-            pass
+        # Envio para SheetDB
+        payload = {"DATA": datetime.now().strftime("%d/%m/%Y %H:%M"), "CLIENTE": nome.upper(), "WHATSAPP": num_limpo, "E-MAIL": email.lower(), "INTERESSE": escolha, "LOJA": loja_pref}
+        try: requests.post(API_URL, json={"data": [payload]}, timeout=5)
+        except: pass
 
-        # --- LÓGICA DA MENSAGEM PERSONALIZADA ---
+        # --- LÓGICA DE MENSAGENS POR NICHO ---
+        mensagens_nicho = {
+            "Perfumes e Bodysplash (Fem/Masc)": "para você ficar sempre perfumada(o) e marcante! 🧴✨",
+            "Scarpins e Saltos": "para você arrasar em qualquer ocasião com muito estilo! 👠🔥",
+            "Moda Adulto e Infantil": "com as últimas tendências para toda a família! 👗👕",
+            "Mamãe e Bebê": "escolhidos com todo carinho para esse momento especial! 🍼👶",
+            "Pets": "para mimar o seu melhor amigo como ele merece! 🐾🐶",
+            "Eletrodomésticos": "para facilitar sua vida e deixar sua casa moderna! 🏠⚡",
+            "Cama, Mesa e Banho": "para transformar sua casa num verdadeiro hotel 5 estrelas! 🛌☁️",
+            "Tênis Adulto e Infantil": "que unem conforto e performance para o dia a dia! 👟💨",
+            "Lingerie": "para elevar sua autoestima com peças incríveis! 💖👙",
+            "Sexshop": "para apimentar sua rotina com total discrição e prazer! 🔥🤫",
+            "Brinquedos": "para garantir a diversão e o sorriso da garotada! 🧸🎈"
+        }
+
+        # Complemento baseado no nicho
+        complemento = mensagens_nicho.get(escolha, "com as melhores ofertas que encontramos hoje! ✨")
+        link_loja_alvo = LINK_SHOPEE if loja_pref == "Shopee" else LINK_ML
+        emoji_loja = "🛍️" if loja_pref == "Shopee" else "📦"
+
+        # Construção da Mensagem
         if escolha == "Outros ✨":
             texto_zap = (
                 f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
                 f"Recebi sua resposta e fiquei super curiosa! ✨\n\n"
-                f"Vi que você marcou que tem interesse em outros produtos que ainda não temos na vitrine. "
-                f"Como a LuhVee Stores quer ser sua parceira número 1 em achadinhos, me conta por aqui: "
-                f"o que você está procurando e ainda não encontrou com um preço legal? 🛍️\n\n"
-                f"Vou adorar caçar essa oferta exclusiva para você!\n\n"
-                f"Enquanto isso, aproveite o nosso Hub Oficial:\n"
-                f"🔗 {NOVO_HUB}"
+                f"Vi que você tem interesse em produtos que ainda não temos na vitrine. Me conta: o que você está procurando? 🛍️\n\n"
+                f"Vou caçar essa oferta exclusiva para você!\n\n"
             )
         else:
             texto_zap = (
                 f"Olá {primeiro_nome}! ✨\n\n"
-                f"Aqui é da LuhVee Stores. Que bom saber que você tem interesse em {escolha}! 😍\n\n"
-                f"Preparamos uma curadoria especial para você aproveitar na {loja_pref}:\n\n"
-                f"👉 Acesse agora: {NOVO_HUB}\n\n"
-                f"Entra no nosso grupo VIP para receber ofertas diárias:\n"
-                f"🎁 {LINK_GRUPO}\n\n"
-                f"Bjs e boas compras! 🛍️✨"
+                f"Aqui é da LuhVee Stores. Separamos achadinhos de {escolha} {complemento}\n\n"
+                f"Sua plataforma favorita é o {loja_pref}, então aqui está o atalho:\n"
+                f"{emoji_loja} Vitrine {loja_pref}: {link_loja_alvo}\n\n"
             )
+
+        # Bloco de Fechamento (Sempre presente)
+        texto_zap += (
+            f"🔗 Nosso Hub de Ofertas: {NOVO_HUB}\n"
+            f"🎁 Grupo VIP (Ofertas Diárias): {LINK_GRUPO}\n\n"
+            f"Acompanhe nossos achadinhos:\n"
+            f"📸 Instagram: {INSTAGRAM}\n"
+            f"🎥 TikTok: {TIKTOK}\n\n"
+            f"Bjs e boas compras! 🛍️✨"
+        )
         
         msg_encoded = urllib.parse.quote(texto_zap)
         link_final = f"https://wa.me/{num_limpo}?text={msg_encoded}"
         
-        st.success(f"Tudo pronto, {primeiro_nome}! Clique abaixo:")
-        st.link_button("🎁 ABRIR MEU WHATSAPP", link_final)
+        st.success(f"Tudo pronto, {primeiro_nome}! Clique no botão abaixo:")
+        st.link_button("🎁 RECEBER MEUS LINKS NO WHATSAPP", link_final)
     else:
-        st.error("❌ Por favor, preencha o Nome, E-mail e o WhatsApp.")
+        st.error("❌ Por favor, preencha Nome, E-mail e WhatsApp.")
