@@ -19,23 +19,23 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- CONFIGURAÇÕES E LINKS ---
+# --- CONFIGURAÇÕES ---
 API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
-NOVO_HUB = "https://links-luhveestore.streamlit.app/"
 LINK_GRUPO = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
+NOVO_HUB = "https://links-luhveestore.streamlit.app/"
 
 # --- LOGO ---
-st.markdown("<h1 style='text-align: center; color: #ff69b4;'>LuhVee Stores</h1>", unsafe_allow_html=True)
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    st.markdown("<h1 style='text-align: center; color: #ff69b4;'>LuhVee Stores</h1>", unsafe_allow_html=True)
+
 st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
 
 # --- FORMULÁRIO ---
 with st.form("form_vendas", clear_on_submit=True):
     nome = st.text_input("Seu Nome Completo")
-    email = st.text_input("Seu MELHOR E-mail")
+    email = st.text_input("Seu E-mail") # CAMPO NOVO
     whatsapp_cliente = st.text_input("Seu WhatsApp (Ex: 11999999999)")
-    
-    # Campo que vai para a coluna 'LOJA' no Excel
-    loja_preferida = st.radio("Qual sua plataforma preferida para compras?", ["Shopee", "Mercado Livre"])
     
     escolha = st.selectbox("O que você procura hoje?", [
         "Perfumes e Bodysplash (Fem/Masc)", "Scarpins e Saltos", "Moda Adulto e Infantil", 
@@ -43,8 +43,10 @@ with st.form("form_vendas", clear_on_submit=True):
         "Ferramentas", "Jardinagem", "Tênis Adulto e Infantil", "Informática", 
         "Móveis", "Lingerie", "Sexshop", "Brinquedos", "Outros ✨"
     ])
+
+    loja_pref = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre"]) # CAMPO NOVO
     
-    submit = st.form_submit_button("RECEBA OFERTAS EXCLUSIVAS ❤️")
+    submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
 if submit:
     if nome and whatsapp_cliente and email:
@@ -53,22 +55,21 @@ if submit:
         if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
         primeiro_nome = nome.split()[0].title()
 
-        # --- SALVAMENTO NA PLANILHA (Ajustado para as tuas colunas) ---
+        # --- SALVAMENTO NA PLANILHA ---
         payload = {
             "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
             "CLIENTE": nome.upper(),
             "WHATSAPP": num_limpo,
-            "E-MAIL": email.lower(), # Ajustado para bater com a imagem
+            "E-MAIL": email.lower(),
             "INTERESSE": escolha,
-            "LOJA": loja_preferida # Envia Shopee ou Mercado Livre para a coluna LOJA
+            "LOJA": loja_pref
         }
-        
         try:
             requests.post(API_URL, json={"data": [payload]}, timeout=5)
         except:
-            pass 
+            pass
 
-        # --- LÓGICA DA MENSAGEM ---
+        # --- LÓGICA DA MENSAGEM PERSONALIZADA ---
         if escolha == "Outros ✨":
             texto_zap = (
                 f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
@@ -84,17 +85,17 @@ if submit:
             texto_zap = (
                 f"Olá {primeiro_nome}! ✨\n\n"
                 f"Aqui é da LuhVee Stores. Que bom saber que você tem interesse em {escolha}! 😍\n\n"
-                f"Preparamos uma curadoria especial no nosso novo Hub de Ofertas para você aproveitar na {loja_preferida}:\n\n"
+                f"Preparamos uma curadoria especial para você aproveitar na {loja_pref}:\n\n"
                 f"👉 Acesse agora: {NOVO_HUB}\n\n"
-                f"Não esqueça de entrar no nosso grupo VIP para não perder as promoções de hoje:\n"
+                f"Entra no nosso grupo VIP para receber ofertas diárias:\n"
                 f"🎁 {LINK_GRUPO}\n\n"
-                f"Boas compras! 🛍️✨"
+                f"Bjs e boas compras! 🛍️✨"
             )
         
         msg_encoded = urllib.parse.quote(texto_zap)
         link_final = f"https://wa.me/{num_limpo}?text={msg_encoded}"
         
-        st.success(f"Obrigado, {primeiro_nome}! Clique abaixo para resgatar suas ofertas.")
-        st.link_button("🎁 ABRIR MEU WHATSAPP AGORA", link_final)
+        st.success(f"Tudo pronto, {primeiro_nome}! Clique abaixo:")
+        st.link_button("🎁 ABRIR MEU WHATSAPP", link_final)
     else:
-        st.error("❌ Por favor, preencha o Nome, E-mail e WhatsApp.")
+        st.error("❌ Por favor, preencha o Nome, E-mail e o WhatsApp.")
