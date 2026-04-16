@@ -23,6 +23,7 @@ st.markdown("""
 API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
 LINK_GRUPO = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
 NOVO_HUB = "https://links-luhveestore.streamlit.app/"
+MEU_WHATSAPP = "5511948021428" # O teu número comercial
 
 # --- CABEÇALHO ---
 st.markdown("<h1 style='text-align: center; color: #ff69b4;'>LuhVee Stores</h1>", unsafe_allow_html=True)
@@ -41,33 +42,34 @@ with st.form("form_vendas", clear_on_submit=True):
         "Móveis", "Lingerie", "Sexshop", "Brinquedos", "Outros ✨"
     ])
 
-    # Esta variável 'loja_selecionada' é a que será enviada para a coluna LOJA
     loja_selecionada = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre"])
     
     submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
 if submit:
     if nome and whatsapp_cliente and email:
+        # Tratamento do número do cliente
         num_limpo = "".join(filter(str.isdigit, whatsapp_cliente))
         if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
         primeiro_nome = nome.split()[0].title()
 
-        # --- ENVIO PARA A PLANILHA (Nomes das chaves iguais às colunas do Excel) ---
+        # --- ENVIO PARA A PLANILHA ---
         payload = {
             "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
             "CLIENTE": nome.upper(),
             "WHATSAPP": num_limpo,
             "E-MAIL": email.lower(),
             "INTERESSE": escolha,
-            "LOJA": loja_selecionada  # <-- AQUI ESTÁ A CORREÇÃO PARA A COLUNA F
+            "LOJA": loja_selecionada 
         }
         
         try:
+            # Envia para o SheetDB - Certifique-se que a coluna F se chama LOJA (em maiúsculas)
             requests.post(API_URL, json={"data": [payload]}, timeout=5)
         except:
             pass
 
-        # --- MENSAGENS PERSONALIZADAS ---
+        # --- DICIONÁRIO DE MENSAGENS POR NICHO ---
         mensagens_nicho = {
             "Perfumes e Bodysplash (Fem/Masc)": "para você ficar sempre perfumada(o) e marcante! 🧴✨",
             "Scarpins e Saltos": "para você arrasar com muito estilo e elegância! 👠🔥",
@@ -81,35 +83,36 @@ if submit:
             "Sexshop": "para apimentar sua rotina com total discrição! 🔥🤫",
             "Brinquedos": "diversão garantida para a criançada! 🧸🎈"
         }
-
+        
         frase_nicho = mensagens_nicho.get(escolha, "com as melhores ofertas que encontramos hoje! ✨")
 
+        # --- LÓGICA DE DESTINO E MENSAGEM ---
         if escolha == "Outros ✨":
+            # Manda para a LUANA (Dona da loja)
             texto_zap = (
-                f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
-                f"Recebi sua resposta e fiquei super curiosa! ✨\n\n"
-                f"Vi que você tem interesse em produtos que ainda não temos na vitrine. Me conta aqui: o que você está procurando? 🛍️\n\n"
-                f"Vou adorar caçar essa oferta exclusiva para você!\n\n"
-                f"Enquanto isso, aproveite o nosso Hub e nos siga nas redes sociais para não perder nada:\n"
-                f"🔗 {NOVO_HUB}\n\n"
+                f"Olá Luana! ✨\n\n"
+                f"Meu nome é {primeiro_nome} e acabei de responder sua pesquisa. 🥰\n\n"
+                f"Escolhi a opção *'Outros'* porque procuro algo especial que não encontrei na vitrine. Pode me ajudar? 🛍️"
             )
+            destino_final = MEU_WHATSAPP
+            msg_sucesso = f"Tudo pronto, {primeiro_nome}! Clique abaixo para falar diretamente comigo no WhatsApp:"
         else:
+            # Manda para o CLIENTE
             texto_zap = (
                 f"Olá {primeiro_nome}! ✨\n\n"
                 f"Aqui é da *LuhVee Stores*. Já separei achadinhos de *{escolha}* {frase_nicho}\n\n"
-                f"Confira tudo agora no nosso *Hub Oficial* e aproveite para nos seguir nas redes sociais:\n"
+                f"Confira tudo agora no nosso *Hub Oficial* e nos siga nas redes sociais:\n"
                 f"👉 {NOVO_HUB}\n\n"
+                f"🎁 *Grupo VIP de Ofertas:* {LINK_GRUPO}\n\n"
+                f"Qualquer dúvida, é só me chamar! Bjs e boas compras! 🛍️✨"
             )
+            destino_final = num_limpo
+            msg_sucesso = f"Tudo pronto, {primeiro_nome}! Clique abaixo para receber seus links no WhatsApp:"
 
-        texto_zap += (
-            f"🎁 *Entre no nosso Grupo VIP de Ofertas:* {LINK_GRUPO}\n\n"
-            f"Te esperamos lá! Bjs e boas compras! 🛍️✨"
-        )
-        
         msg_encoded = urllib.parse.quote(texto_zap)
-        link_final = f"https://wa.me/{num_limpo}?text={msg_encoded}"
+        link_final = f"https://wa.me/{destino_final}?text={msg_encoded}"
         
-        st.success(f"Tudo pronto, {primeiro_nome}! Seu acesso está logo abaixo:")
-        st.link_button("🎁 RECEBER LINK NO WHATSAPP", link_final)
+        st.success(msg_sucesso)
+        st.link_button("🎁 ABRIR WHATSAPP", link_final)
     else:
-        st.error("❌ Por favor, preencha todos os campos corretamente.")
+        st.error("❌ Por favor, preencha Nome, E-mail e WhatsApp.")
