@@ -19,12 +19,12 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- LINKS PRINCIPAIS ---
+# --- CONFIGURAÇÕES ---
 API_URL = "https://sheetdb.io/api/v1/4s035f0bwuwxy" 
-NOVO_HUB = "https://links-luhveestore.streamlit.app/"
 LINK_GRUPO = "https://chat.whatsapp.com/IBneTrHJemMLla4wzU8Wbj"
+NOVO_HUB = "https://links-luhveestore.streamlit.app/"
 
-# --- LOGO ---
+# --- CABEÇALHO ---
 st.markdown("<h1 style='text-align: center; color: #ff69b4;'>LuhVee Stores</h1>", unsafe_allow_html=True)
 st.markdown("<h2 style='text-align: center;'>SUA OPINIÃO VALE MUITO ❤️</h2>", unsafe_allow_html=True)
 
@@ -41,7 +41,8 @@ with st.form("form_vendas", clear_on_submit=True):
         "Móveis", "Lingerie", "Sexshop", "Brinquedos", "Outros ✨"
     ])
 
-    loja_pref = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre"])
+    # Esta variável 'loja_selecionada' é a que será enviada para a coluna LOJA
+    loja_selecionada = st.radio("Onde você prefere comprar?", ["Shopee", "Mercado Livre"])
     
     submit = st.form_submit_button("RECEBA PROMOÇÕES ❤️")
 
@@ -51,21 +52,22 @@ if submit:
         if len(num_limpo) <= 11: num_limpo = "55" + num_limpo
         primeiro_nome = nome.split()[0].title()
 
-        # Registro no SheetDB
+        # --- ENVIO PARA A PLANILHA (Nomes das chaves iguais às colunas do Excel) ---
         payload = {
             "DATA": datetime.now().strftime("%d/%m/%Y %H:%M"),
             "CLIENTE": nome.upper(),
             "WHATSAPP": num_limpo,
             "E-MAIL": email.lower(),
             "INTERESSE": escolha,
-            "LOJA": loja_pref
+            "LOJA": loja_selecionada  # <-- AQUI ESTÁ A CORREÇÃO PARA A COLUNA F
         }
+        
         try:
             requests.post(API_URL, json={"data": [payload]}, timeout=5)
         except:
             pass
 
-        # --- DICIONÁRIO DE MENSAGENS PERSONALIZADAS ---
+        # --- MENSAGENS PERSONALIZADAS ---
         mensagens_nicho = {
             "Perfumes e Bodysplash (Fem/Masc)": "para você ficar sempre perfumada(o) e marcante! 🧴✨",
             "Scarpins e Saltos": "para você arrasar com muito estilo e elegância! 👠🔥",
@@ -82,27 +84,25 @@ if submit:
 
         frase_nicho = mensagens_nicho.get(escolha, "com as melhores ofertas que encontramos hoje! ✨")
 
-        # --- CONSTRUÇÃO DO TEXTO DO WHATSAPP ---
         if escolha == "Outros ✨":
             texto_zap = (
                 f"Olá {primeiro_nome}, tudo bem? 🥰\n\n"
                 f"Recebi sua resposta e fiquei super curiosa! ✨\n\n"
                 f"Vi que você tem interesse em produtos que ainda não temos na vitrine. Me conta aqui: o que você está procurando? 🛍️\n\n"
                 f"Vou adorar caçar essa oferta exclusiva para você!\n\n"
-                f"Enquanto isso, dá uma olhadinha no nosso Hub e aproveite para nos seguir nas redes sociais:\n"
+                f"Enquanto isso, aproveite o nosso Hub e nos siga nas redes sociais para não perder nada:\n"
                 f"🔗 {NOVO_HUB}\n\n"
             )
         else:
             texto_zap = (
                 f"Olá {primeiro_nome}! ✨\n\n"
-                f"Aqui é da LuhVee Stores. Já separei achadinhos de {escolha} {frase_nicho}\n\n"
-                f"Confira tudo agora no nosso Hub Oficial e não esqueça de nos seguir para acompanhar as novidades:\n"
+                f"Aqui é da *LuhVee Stores*. Já separei achadinhos de *{escolha}* {frase_nicho}\n\n"
+                f"Confira tudo agora no nosso *Hub Oficial* e aproveite para nos seguir nas redes sociais:\n"
                 f"👉 {NOVO_HUB}\n\n"
             )
 
-        # Rodapé fixo da mensagem
         texto_zap += (
-            f"🎁 Entre no nosso Grupo VIP de Ofertas: {LINK_GRUPO}\n\n"
+            f"🎁 *Entre no nosso Grupo VIP de Ofertas:* {LINK_GRUPO}\n\n"
             f"Te esperamos lá! Bjs e boas compras! 🛍️✨"
         )
         
